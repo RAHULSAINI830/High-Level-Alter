@@ -10,7 +10,8 @@ google-auth-oauthlib==1.0.0
 google-api-python-client==2.92.0
 Flask==2.2.3
 gunicorn==20.1.0
-pymongo==4.4.1
+pymongo==4.3.3
 python-dotenv==1.0.0
+
 
 
