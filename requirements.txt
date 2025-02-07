@@ -4,3 +4,4 @@ pymongo==4.3.3
 flask-cors==3.0.10
 flask-mail==0.9.1
 werkzeug==2.2.3
+pyjwt==2.7.0  # Add this line
