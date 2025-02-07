@@ -1,75 +1,59 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
+from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
+import os
 import jwt
 from datetime import datetime, timedelta, timezone
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from functools import wraps
 from flask_cors import CORS
-from flask_mail import Mail, Message
-import random
+from flask import session  # For storing user OAuth credentials
+
+
+# Google OAuth2 and Analytics Setup
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # For local testing only
+CLIENT_SECRET_FILE = 'oauth2-credentials.json'  # OAuth2 credentials file path
+SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
+GA4_PROPERTY_ID = 'YOUR_GA4_PROPERTY_ID'  # Replace with your GA4 property ID
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True, 
-     expose_headers=["Authorization"], allow_headers=["Authorization", "Content-Type"])# Secret key for JWT
+CORS(app)  # Allow cross-origin requests
+
+# Secret key for JWT
 app.config['SECRET_KEY'] = 'b9c8d5a73944b7f924b5296acdf4cddc35e3475f0a1a32a0c451aee71d6c49b2'
 
-# Email configuration
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'rahul.saini@zentrades.pro'  # Replace with your email
-app.config['MAIL_PASSWORD'] = 'Rahul@830'   # Replace with your email app password
-mail = Mail(app)
-
-# MongoDB setup
+# MongoDB setup (define client and users_collection globally)
 try:
     client = MongoClient("mongodb+srv://sainirahul1009:z7TJMAdiqfAiHGRD@cluster0.3bmxr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
     db = client['social_dashboard']
-    users_collection = db['users']
-    otp_collection = db['otp_verification']
+    users_collection = db['users']  # Now this is globally defined and accessible
 except Exception as e:
     print(f"Error connecting to MongoDB: {e}")
 
-# Helper function to generate OTP
-def generate_otp():
-    return str(random.randint(100000, 999999))
-
-# Helper function to send OTP
-def send_otp_email(email, otp):
-    msg = Message(subject="Your OTP Verification Code",
-                  sender=app.config['MAIL_USERNAME'],
-                  recipients=[email])
-    msg.body = f"Your OTP for verification is: {otp}. It is valid for 10 minutes."
-    mail.send(msg)
-
-# Generate JWT tokens
+# Helper function to create JWT tokens
 def generate_jwt_token(user_id):
     payload = {
         'user_id': str(user_id),
-        'exp': datetime.now(timezone.utc) + timedelta(hours=24)  # Extend validity to 24 hours
+        'exp': datetime.now(timezone.utc) + timedelta(hours=1)  # Token valid for 1 hour
     }
     token = jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
     return token
-
-
 
 # Middleware to protect routes
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        # Log all headers for debugging
-        print("All Request Headers:", dict(request.headers))
-
         token = request.headers.get('Authorization')
-        print(f"Authorization Header Received: {token}")
-
         if not token:
             return jsonify({'error': 'Token is missing'}), 403
 
+        # Remove "Bearer " prefix if present
         if token.startswith('Bearer '):
-            token = token.split(' ')[1]
+            token = token[7:]
 
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
@@ -84,7 +68,6 @@ def token_required(f):
 
         return f(current_user, *args, **kwargs)
     return decorated
-
 # Root route
 @app.route('/')
 def home():
@@ -101,67 +84,103 @@ def login_page():
     return render_template('login.html')
 
 # Dashboard page route
-@app.route('/dashboard', methods=['GET'])
-@token_required
-def dashboard_page(current_user):
-    return jsonify({
-        'user': {
-            'name': current_user['name'],
-            'email': current_user['email'],
-            'created_at': current_user['created_at'].strftime('%Y-%m-%d %H:%M:%S')
-        }
-    }), 200
+@app.route('/dashboard')
+def dashboard_page():
+    return render_template('dashboard.html')
 
-
-
-
-# Step 1: Send OTP during registration
-@app.route('/auth/send-otp', methods=['POST'])
-def send_otp():
+# Register a new user (POST request)
+@app.route('/auth/register', methods=['POST'])
+def register():
     data = request.json
-    email = data.get('email')
-
-    if not email:
-        return jsonify({'error': 'Email is required'}), 400
-
-    # Check if email is already registered
-    if users_collection.find_one({'email': email}):
-        return jsonify({'error': 'Email is already registered'}), 400
-
-    otp = generate_otp()
-    otp_collection.insert_one({'email': email, 'otp': otp, 'created_at': datetime.now(timezone.utc)})
-
-    # Send OTP email
-    send_otp_email(email, otp)
-    return jsonify({'message': 'OTP sent to email'}), 200
-
-# Step 2: Verify OTP
-@app.route('/auth/verify-otp', methods=['POST'])
-def verify_otp():
-    data = request.json
-    email = data.get('email')
-    otp = data.get('otp')
-
-    if not email or not otp:
-        return jsonify({'error': 'Email and OTP are required'}), 400
-
-    otp_entry = otp_collection.find_one({'email': email, 'otp': otp})
-    if not otp_entry:
-        return jsonify({'error': 'Invalid OTP'}), 400
-
-    return jsonify({'message': 'OTP verified'}), 200
-
-
-@app.route('/auth/login', methods=['POST'])
-def login():
-    data = request.json
-    print("Received POST data:", data)
 
     # Validate request data
-    if not data or not all(key in data for key in ('email', 'password')):
-        return jsonify({'error': 'Email and password are required'}), 400
+    if not data or not all(key in data for key in ('name', 'email', 'password')):
+        return jsonify({'error': 'Name, email, and password are required'}), 400
 
-    user = users_collection.find_one({'email': data['email']})
+    # Check if user already exists
+    if users_collection.find_one({'email': data['email']}):
+        return jsonify({'error': 'User already exists'}), 400
+
+    # Hash password and insert user into the database
+    hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
+    user = {
+        'name': data['name'],
+        'email': data['email'],
+        'password': hashed_password,
+        'created_at': datetime.now(timezone.utc)
+    }
+
+    try:
+        users_collection.insert_one(user)
+    except Exception as e:
+        return jsonify({'error': f'Error saving user to database: {str(e)}'}), 500
+
+    return jsonify({'message': 'User registered successfully'}), 201
+
+# User login (POST request)
+# User login (POST request)
+@app.route('/auth/login', methods=['POST'])
+def login():
+    try:
+        data = request.json  # Get the request data
+        print("Received POST data:", data)
+
+        # Validate request data
+        if not data or not all(key in data for key in ('email', 'password')):
+            return jsonify({'error': 'Email and password are required'}), 400
+
+        # Find the user by email
+        user = users_collection.find_one({'email': data['email']})
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Validate password
+        if not check_password_hash(user['password'], data['password']):
+            return jsonify({'error': 'Invalid password'}), 401
+
+        # Generate JWT token
+        token = generate_jwt_token(user['_id'])
+        return jsonify({'token': token, 'message': 'Login successful'}), 200
+
+    except Exception as e:
+        print(f"Error during login: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+# Route to redirect user to Google's OAuth page
+@app.route('/auth/google')
+def auth_google():
+    flow = Flow.from_client_secrets_file(
+        CLIENT_SECRET_FILE,
+        scopes=SCOPES,
+        redirect_uri=url_for('auth_callback', _external=True)
+    )
+    authorization_url, _ = flow.authorization_url(prompt='consent')
+    return redirect(authorization_url)
+
+@app.route('/auth/callback')
+def auth_callback():
+    flow = Flow.from_client_secrets_file(
+        CLIENT_SECRET_FILE,
+        scopes=SCOPES,
+        redirect_uri=url_for('auth_callback', _external=True)
+    )
+    flow.fetch_token(authorization_response=request.url)
+
+    # Store credentials in session
+    credentials = flow.credentials
+    session['credentials'] = {
+        'token': credentials.token,
+        'refresh_token': credentials.refresh_token,
+        'token_uri': credentials.token_uri,
+        'client_id': credentials.client_id,
+        'client_secret': credentials.client_secret,
+        'scopes': credentials.scopes
+    }
+
+    return redirect(url_for('dashboard_page'))
+
 
     # Validate user credentials
     if not user:
@@ -173,70 +192,42 @@ def login():
     token = generate_jwt_token(user['_id'])
     return jsonify({'token': token, 'message': 'Login successful'}), 200
 
-# Registration after OTP verification
-@app.route('/auth/register', methods=['POST'])
-def register():
-    data = request.json
+@app.route('/analytics', methods=['GET'])
+def fetch_analytics_data():
+    if 'credentials' not in session:
+        return jsonify({'error': 'User not authenticated. Please connect to Google Analytics first.'}), 401
 
-    if not data or not all(key in data for key in ('name', 'email', 'password', 'otp')):
-        return jsonify({'error': 'Name, email, password, and OTP are required'}), 400
+    # Use stored credentials
+    credentials = Credentials(**session['credentials'])
+    analytics = build('analyticsdata', 'v1beta', credentials=credentials)
 
-    otp_entry = otp_collection.find_one({'email': data['email'], 'otp': data['otp']})
-    if not otp_entry:
-        return jsonify({'error': 'Invalid OTP'}), 400
+    try:
+        # Request body to fetch sessions and active users
+        request_body = {
+            'dateRanges': [{'startDate': '30daysAgo', 'endDate': 'today'}],
+            'metrics': [
+                {'name': 'activeUsers'},
+                {'name': 'sessions'},
+                {'name': 'screenPageViews'}
+            ],
+        }
 
-    if users_collection.find_one({'email': data['email']}):
-        return jsonify({'error': 'User already exists'}), 400
+        response = analytics.properties().runReport(
+            property=f'properties/{GA4_PROPERTY_ID}',
+            body=request_body
+        ).execute()
 
-    hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
-    user = {
-        'name': data['name'],
-        'email': data['email'],
-        'password': hashed_password,
-        'created_at': datetime.now(timezone.utc)
-    }
+        # Extract the metrics from the response
+        data = {
+            'activeUsers': response['rows'][0]['metricValues'][0]['value'],
+            'sessions': response['rows'][0]['metricValues'][1]['value'],
+            'screenPageViews': response['rows'][0]['metricValues'][2]['value']
+        }
+        return jsonify(data)
+    except Exception as e:
+        print(f"Error fetching Google Analytics data: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
-    users_collection.insert_one(user)
-    otp_collection.delete_one({'email': data['email']})  # Clean OTP after success
-    return jsonify({'message': 'User registered successfully'}), 201
-
-# Step 3: Forgot password - send OTP
-@app.route('/auth/forgot-password', methods=['POST'])
-def forgot_password():
-    data = request.json
-    email = data.get('email')
-
-    if not email:
-        return jsonify({'error': 'Email is required'}), 400
-
-    user = users_collection.find_one({'email': email})
-    if not user:
-        return jsonify({'error': 'No account associated with this email'}), 404
-
-    otp = generate_otp()
-    otp_collection.insert_one({'email': email, 'otp': otp, 'created_at': datetime.now(timezone.utc)})
-    send_otp_email(email, otp)
-    return jsonify({'message': 'OTP sent to your email'}), 200
-
-# Step 4: Reset password
-@app.route('/auth/reset-password', methods=['POST'])
-def reset_password():
-    data = request.json
-    email = data.get('email')
-    otp = data.get('otp')
-    new_password = data.get('new_password')
-
-    if not email or not otp or not new_password:
-        return jsonify({'error': 'Email, OTP, and new password are required'}), 400
-
-    otp_entry = otp_collection.find_one({'email': email, 'otp': otp})
-    if not otp_entry:
-        return jsonify({'error': 'Invalid or expired OTP'}), 400
-
-    hashed_password = generate_password_hash(new_password, method='pbkdf2:sha256')
-    users_collection.update_one({'email': email}, {'$set': {'password': hashed_password}})
-    otp_collection.delete_one({'email': email})  # Clean OTP after success
-    return jsonify({'message': 'Password reset successful'}), 200
 
 # Protected route
 @app.route('/protected', methods=['GET'])
@@ -250,6 +241,18 @@ def protected_route(current_user):
             'created_at': current_user['created_at'].strftime('%Y-%m-%d %H:%M:%S')
         }
     }), 200
+
+@app.route('/api/user/profile', methods=['GET'])
+@token_required
+def get_user_profile(current_user):
+    try:
+        user_profile = {
+            'name': current_user['name'],
+            'email': current_user['email']
+        }
+        return jsonify(user_profile), 200
+    except Exception as e:
+        return jsonify({'error': f'Error retrieving user profile: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

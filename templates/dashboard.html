@@ -4,185 +4,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Social Media Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f6f9;
+            background-color: #f0f2f5;
+            font-family: 'Arial, sans-serif';
         }
 
-        .header {
-            background-color: #3b82f6;
-            padding: 20px;
-            text-align: center;
-            color: white;
-            font-size: 24px;
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
         }
 
         .sidebar {
             width: 250px;
-            height: 100vh;
-            background-color: #1e293b;
+            background-color: #2c3e50;
             color: white;
-            position: fixed;
-            padding-top: 30px;
-        }
-
-        .sidebar ul {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        .sidebar ul li {
-            padding: 15px 20px;
-            cursor: pointer;
-        }
-
-        .sidebar ul li:hover {
-            background-color: #334155;
-        }
-
-        .content {
-            margin-left: 260px;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
-        .card {
-            background-color: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        .sidebar h4 {
+            color: white;
             margin-bottom: 20px;
+        }
+
+        .sidebar a {
+            padding: 10px 15px;
+            color: #b0bec5;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+        }
+
+        .sidebar a.active,
+        .sidebar a:hover {
+            background-color: #1a252f;
+            color: white;
         }
 
         .user-info {
             display: flex;
             align-items: center;
+            padding: 10px 0;
+            border-top: 1px solid #3e4c59;
+            border-bottom: 1px solid #3e4c59;
+            margin-bottom: 15px;
         }
 
-        .user-info img {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            margin-right: 20px;
+        .user-info i {
+            font-size: 1.5rem;
+            margin-right: 10px;
+            color: #007bff;
         }
 
-        .user-info div {
-            font-size: 18px;
-        }
-
-        .tab {
-            margin-top: 20px;
+        .user-info .initials {
+            width: 40px;
+            height: 40px;
+            background-color: #007bff;
+            color: white;
+            font-size: 1.2rem;
             display: flex;
-            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 10px;
         }
 
-        .tab button {
-            padding: 10px 20px;
+        .user-info span {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .logout-button {
+            padding: 10px 15px;
+            color: #b0bec5;
+            background-color: transparent;
+            border: none;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .logout-button:hover {
+            color: white;
+        }
+
+        .logout-button i {
+            margin-right: 10px;
+        }
+
+        .content {
+            flex-grow: 1;
+            padding: 30px;
+            background-color: #ffffff;
+        }
+
+        .card {
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+        }
+
+        .card .d-flex {
+            align-items: center;
+        }
+
+        .card .icon {
+            font-size: 2rem;
+            margin-right: 15px;
+            color: #007bff;
+        }
+
+        .action-button {
+            background-color: #28a745;
+            color: white;
+            padding: 8px 15px;
             border: none;
             border-radius: 5px;
-            background-color: #3b82f6;
-            color: white;
             cursor: pointer;
-            font-size: 16px;
+            transition: background-color 0.3s ease;
         }
 
-        .tab button:hover {
-            background-color: #2563eb;
-        }
-
-        .tab button.active {
-            background-color: #1d4ed8;
+        .action-button:hover {
+            background-color: #218838;
         }
     </style>
 </head>
 
 <body onload="fetchUserInfo()">
-    <div class="header">
-        Welcome to Your Social Media Dashboard
-    </div>
 
-    <div class="sidebar">
-        <ul>
-            <li>Dashboard</li>
-            <li>Google Analytics</li>
-            <li>Google Ads</li>
-            <li>Facebook Ads</li>
-            <li>Google Reviews</li>
-            <li>Calendar Integration</li>
-        </ul>
-    </div>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- User Info and Notification Section -->
+            <div>
+                <h4>Company Dashboard</h4>
 
-    <div class="content">
-        <div class="card">
-            <div class="user-info">
-                <img id="user-avatar" src="https://via.placeholder.com/60" alt="User Profile">
-                <div>
-                    <strong id="user-name">User Name</strong><br>
-                    <span id="user-email">user.email@example.com</span>
+                <div class="user-info">
+                    
+                    <div class="initials" id="user-initials">U</div>
+                    <span id="user-name">User</span>
+                </div>
+
+                <a href="#" class="active"><i class="fas fa-rocket"></i> Launch Pad</a>
+                <a href="#"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="#"><i class="fas fa-chart-bar"></i> Reporting</a>
+                <a href="#"><i class="fas fa-star"></i> Reputation</a>
+                <a href="#"><i class="fas fa-comments"></i> Conversations</a>
+                <a href="#"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+
+            <!-- Logout Button -->
+            <button class="logout-button" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <h2>Let’s get you on the path to success</h2>
+            <p class="text-muted">Here are some integrations to help you get started:</p>
+
+            <!-- Launch Pad Cards Section -->
+            <div class="card">
+                <div class="d-flex">
+                    <i class="fas fa-chart-line icon"></i>
+                    <div class="flex-grow-1">
+                        <h5>Google Analytics Data</h5>
+                        <p class="text-muted">Track and analyze user interactions with your website and applications.
+                        </p>
+                    </div>
+                    <button class="action-button" onclick="connectToGoogle()">Connect</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="d-flex">
+                    <i class="fas fa-bullhorn icon"></i>
+                    <div class="flex-grow-1">
+                        <h5>Google Ads Data</h5>
+                        <p class="text-muted">Optimize your ad performance by connecting your Google Ads account.</p>
+                    </div>
+                    <button class="action-button" onclick="connectService('Google Ads')">Connect</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="d-flex">
+                    <i class="fab fa-facebook icon"></i>
+                    <div class="flex-grow-1">
+                        <h5>Facebook Ads Manager</h5>
+                        <p class="text-muted">Manage your Facebook ad campaigns and view real-time performance.</p>
+                    </div>
+                    <button class="action-button" onclick="connectService('Facebook Ads Manager')">Connect</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="d-flex">
+                    <i class="fas fa-store icon"></i>
+                    <div class="flex-grow-1">
+                        <h5>Google Business Profile</h5>
+                        <p class="text-muted">Manage your business listings and monitor customer interactions.</p>
+                    </div>
+                    <button class="action-button" onclick="connectService('Google Business Profile')">Reconnect</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="d-flex">
+                    <i class="fas fa-robot icon"></i>
+                    <div class="flex-grow-1">
+                        <h5>Chat Bot</h5>
+                        <p class="text-muted">Enable a chat bot to engage users and convert leads automatically.</p>
+                    </div>
+                    <button class="action-button" onclick="connectService('Chat Bot')">Connect</button>
                 </div>
             </div>
         </div>
-
-        <div class="tab">
-            <button class="active">Overview</button>
-            <button>Analytics</button>
-            <button>Ads</button>
-            <button>Calendar</button>
-            <button>Reviews</button>
-        </div>
-
-        <div class="card">
-            <h2>Welcome!</h2>
-            <p>This is a placeholder dashboard where you can later view your social media performance, ads insights, and
-                more.</p>
-        </div>
-
     </div>
 
     <script>
+        // Fetch and display real user information with an API call
         async function fetchUserInfo() {
             const token = localStorage.getItem('jwtToken');
-            console.log('Token retrieved from localStorage:', token);  // Debug log to ensure token retrieval
-
             if (!token) {
-                alert('Please log in to access the dashboard.');
+                alert("You are not logged in. Redirecting to login...");
                 window.location.href = '/login';
                 return;
             }
 
             try {
-                const response = await fetch('http://127.0.0.1:5000/dashboard', {
+                const response = await fetch('/api/user/profile', {
                     method: 'GET',
-                    mode: 'cors',  // Explicitly enable cross-origin
                     headers: {
-                        'Authorization': `Bearer ${token}`,  // Correct token format
+                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     }
                 });
 
-                console.log('Request made to /dashboard with Authorization:', `Bearer ${token}`);
-
-                if (response.status === 200) {
-                    const data = await response.json();
-                    document.getElementById('user-name').innerText = data.user.name;
-                    document.getElementById('user-email').innerText = data.user.email;
+                if (response.ok) {
+                    const user = await response.json();
+                    document.getElementById('user-name').innerText = user.name;
+                    document.getElementById('user-initials').innerText = `${user.name[0]}${user.name[user.name.length - 1]}`.toUpperCase();
                 } else {
-                    const errorData = await response.json();
-                    console.error('Failed response:', errorData);
-                    alert('Failed to fetch user information. Please log in again.');
+                    alert("Failed to fetch user info. Please log in again.");
                     window.location.href = '/login';
                 }
             } catch (error) {
                 console.error('Error fetching user info:', error);
+                alert("An error occurred. Redirecting to login.");
+                window.location.href = '/login';
             }
         }
+        function connectToGoogle() {
+    // Redirect the user to the Google OAuth authorization endpoint
+    window.location.href = '/auth/google';
+}
 
+        function connectService(serviceName) {
+            alert(`Connecting to ${serviceName}...`);
+        }
 
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            alert("Logging out...");
+            window.location.href = "/login";
+        }
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
