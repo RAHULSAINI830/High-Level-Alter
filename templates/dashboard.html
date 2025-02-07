@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f9;
+        }
+
+        .header {
+            background-color: #3b82f6;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background-color: #1e293b;
+            color: white;
+            position: fixed;
+            padding-top: 30px;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            padding: 15px 20px;
+            cursor: pointer;
+        }
+
+        .sidebar ul li:hover {
+            background-color: #334155;
+        }
+
+        .content {
+            margin-left: 260px;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 20px;
+        }
+
+        .user-info div {
+            font-size: 18px;
+        }
+
+        .tab {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .tab button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3b82f6;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .tab button:hover {
+            background-color: #2563eb;
+        }
+
+        .tab button.active {
+            background-color: #1d4ed8;
+        }
+    </style>
+</head>
+
+<body onload="fetchUserInfo()">
+    <div class="header">
+        Welcome to Your Social Media Dashboard
+    </div>
+
+    <div class="sidebar">
+        <ul>
+            <li>Dashboard</li>
+            <li>Google Analytics</li>
+            <li>Google Ads</li>
+            <li>Facebook Ads</li>
+            <li>Google Reviews</li>
+            <li>Calendar Integration</li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <div class="card">
+            <div class="user-info">
+                <img id="user-avatar" src="https://via.placeholder.com/60" alt="User Profile">
+                <div>
+                    <strong id="user-name">User Name</strong><br>
+                    <span id="user-email">user.email@example.com</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab">
+            <button class="active">Overview</button>
+            <button>Analytics</button>
+            <button>Ads</button>
+            <button>Calendar</button>
+            <button>Reviews</button>
+        </div>
+
+        <div class="card">
+            <h2>Welcome!</h2>
+            <p>This is a placeholder dashboard where you can later view your social media performance, ads insights, and
+                more.</p>
+        </div>
+
+    </div>
+
+    <script>
+        async function fetchUserInfo() {
+            const token = localStorage.getItem('jwtToken');
+            console.log('Token retrieved from localStorage:', token);  // Debug log to ensure token retrieval
+
+            if (!token) {
+                alert('Please log in to access the dashboard.');
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/dashboard', {
+                    method: 'GET',
+                    mode: 'cors',  // Explicitly enable cross-origin
+                    headers: {
+                        'Authorization': `Bearer ${token}`,  // Correct token format
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('Request made to /dashboard with Authorization:', `Bearer ${token}`);
+
+                if (response.status === 200) {
+                    const data = await response.json();
+                    document.getElementById('user-name').innerText = data.user.name;
+                    document.getElementById('user-email').innerText = data.user.email;
+                } else {
+                    const errorData = await response.json();
+                    console.error('Failed response:', errorData);
+                    alert('Failed to fetch user information. Please log in again.');
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Error fetching user info:', error);
+            }
+        }
+
+
+    </script>
+</body>
+
+</html>

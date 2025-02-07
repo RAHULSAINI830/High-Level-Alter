@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="form-container">
+        <h2>Create an Account</h2>
+
+        <!-- Step 1: User provides details -->
+        <div id="registration-step-1">
+            <form id="emailVerificationForm">
+                <label for="email">Email Address:</label>
+                <input type="email" id="email" placeholder="Enter your email" required>
+
+                <button type="submit">Send OTP</button>
+            </form>
+        </div>
+
+        <!-- Step 2: User enters OTP and completes registration -->
+        <div id="registration-step-2" style="display: none;">
+            <form id="registerForm">
+                <label for="otp">Enter OTP:</label>
+                <input type="text" id="otp" placeholder="Enter the OTP sent to your email" required>
+
+                <label for="name">Full Name:</label>
+                <input type="text" id="name" placeholder="Enter your name" required>
+
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Create a password" required>
+                <small id="passwordHelp">Password must be 8+ characters, with 1 uppercase, 1 lowercase, 1 number, and 1 special character.</small>
+
+                <button type="submit">Register</button>
+            </form>
+        </div>
+
+        <p>Already have an account? <a href="/login">Login here</a></p>
+    </div>
+
+    <script>
+        // Handle sending OTP to the user's email
+        document.getElementById('emailVerificationForm').onsubmit = async (event) => {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            try {
+                const response = await fetch('/auth/send-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const result = await response.json();
+                alert(result.message || result.error);
+
+                if (response.status === 200) {
+                    // Show step 2 if OTP is sent successfully
+                    document.getElementById('registration-step-1').style.display = 'none';
+                    document.getElementById('registration-step-2').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error sending OTP:', error);
+            }
+        };
+
+        // Handle full registration after OTP verification
+        document.getElementById('registerForm').onsubmit = async (event) => {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const otp = document.getElementById('otp').value;
+            const name = document.getElementById('name').value;
+            const password = document.getElementById('password').value;
+
+            // Password validation
+            const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            if (!passwordPattern.test(password)) {
+                alert('Password does not meet the requirements.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, email, password, otp })
+                });
+
+                const result = await response.json();
+                alert(result.message || result.error);
+                if (response.status === 201) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Error during registration:', error);
+            }
+        };
+    </script>
+</body>
+</html>
