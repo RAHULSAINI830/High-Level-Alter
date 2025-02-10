@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
+from google.oauth2 import service_account
 import os
 import jwt
 from datetime import datetime, timedelta, timezone
@@ -13,13 +14,20 @@ from bson.objectid import ObjectId
 from functools import wraps
 from flask_cors import CORS
 from flask_mail import Mail, Message
-import requests  # For reCAPTCHA verification
+import requests
+import json
+
+# ================= Configuration =================
 
 # Google OAuth2 and Analytics Setup
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # For local testing only
-CLIENT_SECRET_FILE = 'oauth2-credentials.json'
+CLIENT_SECRET_FILE = 'oauth2-credentials.json'  # Ensure this file exists in your project root
 SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
-GA4_PROPERTY_ID = 'YOUR_GA4_PROPERTY_ID'  # Replace with your GA4 property ID
+GA4_PROPERTY_ID = '376596938'  # Replace with your actual numeric GA4 Property ID
+
+# Service Account for Google Business Profile (Optional)
+SERVICE_ACCOUNT_KEY_PATH = 'service-account-key.json'  # Ensure this file exists if using business profile integration
+GBP_ACCOUNT_ID = os.getenv('GBP_ACCOUNT_ID')  # Set this environment variable to your GBP account ID
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -32,8 +40,8 @@ app.config['SECRET_KEY'] = 'b9c8d5a73944b7f924b5296acdf4cddc35e3475f0a1a32a0c451
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'rahul.saini@zentrades.pro'          # Replace with your sender email
-app.config['MAIL_PASSWORD'] = 'Rahul@830'      # Replace with your app-specific password
+app.config['MAIL_USERNAME'] = 'sainirahul1009@gmail.com'
+app.config['MAIL_PASSWORD'] = 'Rahul@902'
 app.config['MAIL_DEFAULT_SENDER'] = ('Your Name', 'your-email@gmail.com')
 mail = Mail(app)
 
@@ -41,7 +49,8 @@ mail = Mail(app)
 app.config['RECAPTCHA_SITE_KEY'] = '6Lfc3dIqAAAAAJ_JoVxkkHGu-rE7CrgnXFwIFBsd'
 app.config['RECAPTCHA_SECRET_KEY'] = '6Lfc3dIqAAAAAMJEj9-LrGfzPznsk_DfWiTi-K2n'
 
-# MongoDB setup
+# ================= MongoDB Setup =================
+
 try:
     client = MongoClient("mongodb+srv://sainirahul1009:z7TJMAdiqfAiHGRD@cluster0.3bmxr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
     db = client['social_dashboard']
@@ -49,7 +58,19 @@ try:
 except Exception as e:
     print(f"Error connecting to MongoDB: {e}")
 
-# Helper function to create JWT tokens
+# ================= Google Business Profile Client (Optional) =================
+
+bp_service = None
+if os.path.exists(SERVICE_ACCOUNT_KEY_PATH) and GBP_ACCOUNT_ID:
+    bp_scopes = ['https://www.googleapis.com/auth/business.manage']
+    bp_credentials = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_KEY_PATH, scopes=bp_scopes)
+    try:
+        bp_service = build('mybusinessbusinessinformation', 'v1', credentials=bp_credentials)
+    except Exception as e:
+        print(f"Error creating Google Business Profile client: {e}")
+
+# ================= Helper Functions =================
+
 def generate_jwt_token(user_id):
     payload = {
         'user_id': str(user_id),
@@ -58,7 +79,7 @@ def generate_jwt_token(user_id):
     token = jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
     return token
 
-# token_required decorator that checks both headers and session
+# token_required decorator (checks headers and session)
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -81,7 +102,7 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
     return decorated
 
-# admin_required decorator
+# admin_required decorator (ensures user has admin privileges)
 def admin_required(f):
     @wraps(f)
     def decorated_admin(current_user, *args, **kwargs):
@@ -91,6 +112,7 @@ def admin_required(f):
     return decorated_admin
 
 # ================= Page Routes =================
+
 @app.route('/')
 def home():
     return redirect(url_for('login_page'))
@@ -119,17 +141,16 @@ def reset_password_request_page():
 def reset_password_otp_page():
     return render_template('reset_password_otp.html')
 
-# Admin Settings page
 @app.route('/settings')
 @token_required
 @admin_required
 def settings_page(current_user):
     return render_template('settings.html')
+
 # ================= End of Page Routes =================
 
 # ================= Authentication Endpoints =================
 
-# Registration endpoint (self-registration)
 @app.route('/auth/register', methods=['POST'])
 def register():
     data = request.json
@@ -148,7 +169,7 @@ def register():
         'is_verified': False,
         'otp': otp,
         'otp_expiry': otp_expiry,
-        'is_admin': False  # Regular user by default
+        'is_admin': False
     }
     try:
         result = users_collection.insert_one(user)
@@ -161,7 +182,6 @@ def register():
         return jsonify({'error': f'Error saving user to database: {str(e)}'}), 500
     return jsonify({'message': 'User registered successfully. Please verify OTP sent to your email.'}), 201
 
-# Login endpoint with reCAPTCHA verification
 @app.route('/auth/login', methods=['POST'])
 def login():
     try:
@@ -195,14 +215,17 @@ def login():
         print(f"Error during login: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
-# Google OAuth endpoints (if needed)
 @app.route('/auth/google')
 def auth_google():
-    flow = Flow.from_client_secrets_file(
-        CLIENT_SECRET_FILE,
-        scopes=SCOPES,
-        redirect_uri=url_for('auth_callback', _external=True)
-    )
+    try:
+        flow = Flow.from_client_secrets_file(
+            CLIENT_SECRET_FILE,
+            scopes=SCOPES,
+            redirect_uri=url_for('auth_callback', _external=True)
+        )
+    except FileNotFoundError:
+        return "OAuth credentials file not found. Please add oauth2-credentials.json to your project.", 500
+
     authorization_url, _ = flow.authorization_url(prompt='consent')
     return redirect(authorization_url)
 
@@ -232,29 +255,55 @@ def fetch_analytics_data():
     credentials = Credentials(**session['credentials'])
     analytics = build('analyticsdata', 'v1beta', credentials=credentials)
     try:
+        # Request an advanced set of metrics
         request_body = {
             'dateRanges': [{'startDate': '30daysAgo', 'endDate': 'today'}],
             'metrics': [
                 {'name': 'activeUsers'},
                 {'name': 'sessions'},
-                {'name': 'screenPageViews'}
+                {'name': 'screenPageViews'},
+                {'name': 'engagedSessions'},
+                {'name': 'engagementRate'},
+                {'name': 'averageSessionDuration'},
+                {'name': 'newUsers'},
+                {'name': 'totalRevenue'}
             ],
         }
         response = analytics.properties().runReport(
             property=f'properties/{GA4_PROPERTY_ID}',
-            body=request_body
+            body=request_body,
         ).execute()
+        if not response.get('rows'):
+            return jsonify({'error': 'No data returned from GA API'}), 400
+        metric_values = response['rows'][0]['metricValues']
         data = {
-            'activeUsers': response['rows'][0]['metricValues'][0]['value'],
-            'sessions': response['rows'][0]['metricValues'][1]['value'],
-            'screenPageViews': response['rows'][0]['metricValues'][2]['value']
+            'activeUsers': metric_values[0]['value'],
+            'sessions': metric_values[1]['value'],
+            'screenPageViews': metric_values[2]['value'],
+            'engagedSessions': metric_values[3]['value'],
+            'engagementRate': metric_values[4]['value'],
+            'averageSessionDuration': metric_values[5]['value'],
+            'newUsers': metric_values[6]['value'],
+            'totalRevenue': metric_values[7]['value']
         }
         return jsonify(data)
     except Exception as e:
         print(f"Error fetching Google Analytics data: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-# OTP Verification endpoint (for registration)
+@app.route('/google-business-profile', methods=['GET'])
+def google_business_profile():
+    if bp_service is None or not GBP_ACCOUNT_ID:
+        return jsonify({'error': 'Business Profile integration is not configured.'}), 400
+    try:
+        parent = f"accounts/{GBP_ACCOUNT_ID}"
+        response = bp_service.accounts().locations().list(parent=parent).execute()
+        locations = response.get('locations', [])
+        return jsonify(locations), 200
+    except Exception as e:
+        print("Error fetching Google Business Profile data:", e)
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/auth/verify-otp', methods=['POST'])
 def verify_otp():
     data = request.json
@@ -281,7 +330,6 @@ def verify_otp():
     session.pop('pending_user_id', None)
     return jsonify({'message': 'OTP verified successfully. You can now log in.'}), 200
 
-# Resend OTP endpoint (for registration)
 @app.route('/auth/resend-otp', methods=['POST'])
 def resend_otp():
     pending_user_id = session.get('pending_user_id')
@@ -302,7 +350,6 @@ def resend_otp():
     mail.send(msg)
     return jsonify({'message': 'OTP resent successfully.'}), 200
 
-# Reset Password: Step 1 – Request OTP
 @app.route('/auth/reset-password-request', methods=['POST'])
 def reset_password_request():
     data = request.json
@@ -325,7 +372,6 @@ def reset_password_request():
     mail.send(msg)
     return jsonify({'message': 'Reset OTP sent to your email.'}), 200
 
-# Reset Password: Step 2 – Verify OTP and Update Password
 @app.route('/auth/reset-password', methods=['POST'])
 def reset_password():
     data = request.json
@@ -359,7 +405,6 @@ def reset_password():
 
 # ================= Admin-Only Endpoints =================
 
-# Admin Invitation: Invite a new user
 @app.route('/auth/invite-user', methods=['POST'])
 @token_required
 @admin_required
@@ -392,7 +437,6 @@ def invite_user(current_user):
     except Exception as e:
         return jsonify({'error': f'Error inviting user: {str(e)}'}), 500
 
-# Admin Invitation Confirmation Endpoint
 @app.route('/auth/confirm-invite', methods=['GET'])
 def confirm_invite():
     token = request.args.get('token')
@@ -407,32 +451,27 @@ def confirm_invite():
     )
     return "Your account has been confirmed! You can now log in.", 200
 
-# Endpoint to list all users created by the current admin
 @app.route('/api/users', methods=['GET'])
 @token_required
 @admin_required
 def list_users(current_user):
     try:
-        # Return only the users created by the logged-in admin
         users = list(users_collection.find({'created_by': current_user['_id']}))
         for user in users:
             user['_id'] = str(user['_id'])
             if 'created_at' in user:
                 user['created_at'] = user['created_at'].strftime('%Y-%m-%d %H:%M:%S')
-            # Remove sensitive fields
             user.pop('password', None)
             user.pop('otp', None)
             user.pop('otp_expiry', None)
             user.pop('invite_token', None)
             user.pop('reset_otp', None)
             user.pop('reset_otp_expiry', None)
-            # Optionally, convert created_by to string if needed:
             user['created_by'] = str(user.get('created_by', ''))
         return jsonify(users), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Endpoint to update a user (admin only)
 @app.route('/api/users/<user_id>', methods=['PUT'])
 @token_required
 @admin_required
@@ -454,7 +493,6 @@ def update_user(current_user, user_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Endpoint to delete a user (admin only)
 @app.route('/api/users/<user_id>', methods=['DELETE'])
 @token_required
 @admin_required
@@ -465,9 +503,8 @@ def delete_user(current_user, user_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ================= End of Authentication Endpoints =================
+# ================= End of Admin-Only Endpoints =================
 
-# Example Protected Route
 @app.route('/protected', methods=['GET'])
 @token_required
 def protected_route(current_user):

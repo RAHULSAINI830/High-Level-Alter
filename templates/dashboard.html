@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dashboard - Social Dashboard</title>
   <!-- Bootstrap CSS -->
@@ -38,31 +38,12 @@
       border-radius: 5px;
       margin-bottom: 10px;
       transition: background-color 0.3s;
+      cursor: pointer;
     }
     .sidebar a:hover,
     .sidebar a.active {
       background-color: #495057;
       color: #fff;
-    }
-    .content {
-      flex-grow: 1;
-      padding: 30px;
-      background-color: #fff;
-    }
-    .card {
-      margin-bottom: 20px;
-      border: none;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .card .card-body {
-      display: flex;
-      align-items: center;
-    }
-    .card .icon {
-      font-size: 2rem;
-      margin-right: 20px;
-      color: #5563DE;
     }
     .btn-action {
       background-color: #5563DE;
@@ -75,7 +56,69 @@
     .btn-action:hover {
       background-color: #4351b5;
     }
-    /* Settings button styling */
+    .content {
+      flex-grow: 1;
+      padding: 30px;
+      background-color: #fff;
+    }
+    .content h2 {
+      margin-bottom: 30px;
+      color: #333;
+    }
+    /* Hide all tab content by default */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    /* Analytics card styling */
+    .analytics-card {
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .analytics-card h5 {
+      margin-bottom: 10px;
+    }
+    .analytics-card p {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    /* Card styling for integrations */
+    .card {
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: transform 0.3s;
+      margin-bottom: 20px;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .card .card-body {
+      text-align: center;
+    }
+    .card .icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      color: #5563DE;
+    }
+    .btn-connect {
+      background-color: #5563DE;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      color: #fff;
+      transition: background-color 0.3s;
+    }
+    .btn-connect:hover {
+      background-color: #4351b5;
+    }
+    /* Admin Settings button styling */
     #adminSettings {
       text-align: center;
       margin-top: 20px;
@@ -84,10 +127,13 @@
 </head>
 <body>
   <div class="dashboard-container">
+    <!-- Sidebar Navigation -->
     <div class="sidebar animate__animated animate__fadeInLeft">
       <h4>Dashboard</h4>
-      <a href="#" class="active"><i class="fas fa-home"></i> Home</a>
-      <a href="#"><i class="fas fa-chart-line"></i> Analytics</a>
+      <!-- Navigation Links -->
+      <a href="#" id="nav-home" class="active"><i class="fas fa-home"></i> Home</a>
+      <a href="#" id="nav-integrations"><i class="fas fa-plug"></i> Integrations</a>
+      <a href="#" id="nav-analytics"><i class="fas fa-chart-line"></i> Analytics</a>
       <a href="#"><i class="fas fa-user"></i> Profile</a>
       <a href="#"><i class="fas fa-cog"></i> Settings</a>
       <button onclick="logout()" class="btn btn-action w-100 mt-4">Logout</button>
@@ -96,26 +142,223 @@
         <button onclick="window.location.href='/settings'" class="btn btn-secondary mt-3">Admin Settings</button>
       </div>
     </div>
+
+    <!-- Main Content Area -->
     <div class="content animate__animated animate__fadeIn">
-      <h2>Welcome, <span id="user-name">User</span>!</h2>
-      <p>Your dashboard overview.</p>
-      <div class="row">
-        <div class="col-md-4">
-          <div class="card">
-            <div class="card-body">
-              <i class="fas fa-chart-bar icon"></i>
-              <div>
-                <h5>Analytics</h5>
-                <p>View detailed analytics.</p>
+      <!-- Home Tab Content -->
+      <div id="content-home" class="tab-content active">
+        <h2>Welcome, <span id="user-name">User</span>!</h2>
+        <p>This is your dashboard overview. Here you can see your latest activity and statistics.</p>
+        <!-- Additional Home content can be added here -->
+      </div>
+
+      <!-- Integrations Tab Content -->
+      <div id="content-integrations" class="tab-content">
+        <h2 class="text-center">Integrations</h2>
+        <div class="row">
+          <!-- Google Analytics Card -->
+          <div class="col-md-4 mb-4">
+            <div class="card">
+              <div class="card-body">
+                <i class="fas fa-chart-line icon"></i>
+                <h5 class="card-title">Google Analytics</h5>
+                <p class="card-text">View and analyze your website traffic.</p>
+                <button class="btn btn-connect" onclick="window.location.href='/auth/google'">Connect</button>
+              </div>
+            </div>
+          </div>
+          <!-- Google Ads Report Card -->
+          <div class="col-md-4 mb-4">
+            <div class="card">
+              <div class="card-body">
+                <i class="fas fa-ad icon"></i>
+                <h5 class="card-title">Google Ads Report</h5>
+                <p class="card-text">Access detailed ads performance reports.</p>
+                <button class="btn btn-connect" onclick="connectIntegration('google_ads')">Connect</button>
+              </div>
+            </div>
+          </div>
+          <!-- Facebook Ads Report Card -->
+          <div class="col-md-4 mb-4">
+            <div class="card">
+              <div class="card-body">
+                <i class="fab fa-facebook icon"></i>
+                <h5 class="card-title">Facebook Ads Report</h5>
+                <p class="card-text">Monitor your Facebook ad campaigns.</p>
+                <button class="btn btn-connect" onclick="connectIntegration('facebook_ads')">Connect</button>
+              </div>
+            </div>
+          </div>
+          <!-- Google Business Profile Card -->
+          <div class="col-md-4 mb-4">
+            <div class="card">
+              <div class="card-body">
+                <i class="fas fa-store icon"></i>
+                <h5 class="card-title">Google Business Profile</h5>
+                <p class="card-text">Manage your business profile and reviews.</p>
+                <button class="btn btn-connect" onclick="connectIntegration('google_business')">Connect</button>
+              </div>
+            </div>
+          </div>
+          <!-- Chat Bot Card -->
+          <div class="col-md-4 mb-4">
+            <div class="card">
+              <div class="card-body">
+                <i class="fas fa-robot icon"></i>
+                <h5 class="card-title">Chat Bot</h5>
+                <p class="card-text">Engage customers with an automated chat bot.</p>
+                <button class="btn btn-connect" onclick="connectIntegration('chat_bot')">Connect</button>
               </div>
             </div>
           </div>
         </div>
-        <!-- Additional cards can be added here -->
+      </div>
+
+      <!-- Analytics Tab Content -->
+      <div id="content-analytics" class="tab-content">
+        <h2 class="text-center">Google Analytics Data</h2>
+        <div id="analyticsContent" class="analytics-data">
+          <p class="text-center">Loading data...</p>
+        </div>
+        <div class="text-center mt-3">
+          <button class="btn btn-connect" onclick="fetchAnalyticsData()">Refresh Data</button>
+          <button id="gaConnectBtn" class="btn btn-connect mt-2" style="display: none;" onclick="window.location.href='/auth/google'">
+            Connect to Google Analytics
+          </button>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- JavaScript -->
   <script>
+    // Function to switch active tab content
+    function setActiveTab(tabId) {
+      // Remove active class from all sidebar links
+      document.querySelectorAll('.sidebar a').forEach(link => {
+        link.classList.remove('active');
+      });
+      // Add active class to the clicked link
+      document.getElementById('nav-' + tabId).classList.add('active');
+
+      // Hide all tab content sections
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      // Show the selected tab content
+      document.getElementById('content-' + tabId).classList.add('active');
+
+      // If Analytics tab is activated, fetch analytics data
+      if (tabId === 'analytics') {
+        fetchAnalyticsData();
+      }
+    }
+
+    // Attach click events to navigation links
+    document.getElementById('nav-home').addEventListener('click', function(e) {
+      e.preventDefault();
+      setActiveTab('home');
+    });
+    document.getElementById('nav-integrations').addEventListener('click', function(e) {
+      e.preventDefault();
+      setActiveTab('integrations');
+    });
+    document.getElementById('nav-analytics').addEventListener('click', function(e) {
+      e.preventDefault();
+      setActiveTab('analytics');
+    });
+
+    // Dummy function for non-Google Analytics integrations
+    function connectIntegration(integration) {
+      alert("Connecting to " + integration + " is under construction.");
+    }
+
+    // Function to fetch Google Analytics data from the backend
+    async function fetchAnalyticsData() {
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        alert("You are not logged in. Redirecting to login...");
+        window.location.href = '/login';
+        return;
+      }
+      try {
+        const response = await fetch('/analytics', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        const analyticsDiv = document.getElementById('analyticsContent');
+        if (response.ok) {
+          const data = await response.json();
+          analyticsDiv.innerHTML = `
+            <div class="row">
+              <div class="col-md-4">
+                <div class="analytics-card">
+                  <h5>Active Users</h5>
+                  <p>${data.activeUsers}</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="analytics-card">
+                  <h5>Sessions</h5>
+                  <p>${data.sessions}</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="analytics-card">
+                  <h5>Page Views</h5>
+                  <p>${data.screenPageViews}</p>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <div class="analytics-card">
+                  <h5>Engaged Sessions</h5>
+                  <p>${data.engagedSessions}</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="analytics-card">
+                  <h5>Engagement Rate</h5>
+                  <p>${data.engagementRate}</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="analytics-card">
+                  <h5>Avg. Session Duration</h5>
+                  <p>${data.averageSessionDuration}</p>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="analytics-card">
+                  <h5>New Users</h5>
+                  <p>${data.newUsers}</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="analytics-card">
+                  <h5>Total Revenue</h5>
+                  <p>${data.totalRevenue}</p>
+                </div>
+              </div>
+            </div>
+          `;
+          document.getElementById('gaConnectBtn').style.display = 'none';
+        } else {
+          analyticsDiv.innerHTML = `<p class="text-center text-danger">Not connected to Google Analytics.</p>`;
+          document.getElementById('gaConnectBtn').style.display = 'inline-block';
+        }
+      } catch (error) {
+        console.error('Error fetching analytics data:', error);
+        alert("An error occurred while fetching analytics data.");
+      }
+    }
+
     async function fetchUserInfo() {
       const token = localStorage.getItem('jwtToken');
       if (!token) {
@@ -147,12 +390,16 @@
         window.location.href = '/login';
       }
     }
+
     function logout() {
       localStorage.removeItem('jwtToken');
       alert("Logging out...");
       window.location.href = "/login";
     }
+
     fetchUserInfo();
   </script>
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
