@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
@@ -6,31 +6,46 @@ from google.oauth2.credentials import Credentials
 import os
 import jwt
 from datetime import datetime, timedelta, timezone
+import random
+import secrets  # For secure token generation
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from functools import wraps
 from flask_cors import CORS
-from flask import session  # For storing user OAuth credentials
-
+from flask_mail import Mail, Message
+import requests  # For reCAPTCHA verification
 
 # Google OAuth2 and Analytics Setup
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # For local testing only
-CLIENT_SECRET_FILE = 'oauth2-credentials.json'  # OAuth2 credentials file path
+CLIENT_SECRET_FILE = 'oauth2-credentials.json'
 SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
 GA4_PROPERTY_ID = 'YOUR_GA4_PROPERTY_ID'  # Replace with your GA4 property ID
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)  # Allow cross-origin requests
+CORS(app)
 
-# Secret key for JWT
+# Secret key for JWT and session
 app.config['SECRET_KEY'] = 'b9c8d5a73944b7f924b5296acdf4cddc35e3475f0a1a32a0c451aee71d6c49b2'
 
-# MongoDB setup (define client and users_collection globally)
+# Flask-Mail configuration (update with your credentials)
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'rahul.saini@zentrades.pro'          # Replace with your sender email
+app.config['MAIL_PASSWORD'] = 'Rahul@830'      # Replace with your app-specific password
+app.config['MAIL_DEFAULT_SENDER'] = ('Your Name', 'your-email@gmail.com')
+mail = Mail(app)
+
+# reCAPTCHA configuration (replace with your keys)
+app.config['RECAPTCHA_SITE_KEY'] = '6Lfc3dIqAAAAAJ_JoVxkkHGu-rE7CrgnXFwIFBsd'
+app.config['RECAPTCHA_SECRET_KEY'] = '6Lfc3dIqAAAAAMJEj9-LrGfzPznsk_DfWiTi-K2n'
+
+# MongoDB setup
 try:
     client = MongoClient("mongodb+srv://sainirahul1009:z7TJMAdiqfAiHGRD@cluster0.3bmxr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
     db = client['social_dashboard']
-    users_collection = db['users']  # Now this is globally defined and accessible
+    users_collection = db['users']
 except Exception as e:
     print(f"Error connecting to MongoDB: {e}")
 
@@ -38,117 +53,149 @@ except Exception as e:
 def generate_jwt_token(user_id):
     payload = {
         'user_id': str(user_id),
-        'exp': datetime.now(timezone.utc) + timedelta(hours=1)  # Token valid for 1 hour
+        'exp': datetime.now(timezone.utc) + timedelta(hours=1)
     }
     token = jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
     return token
 
-# Middleware to protect routes
+# token_required decorator that checks both headers and session
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = request.headers.get('Authorization')
         if not token:
+            token = session.get('jwtToken')
+        if not token:
             return jsonify({'error': 'Token is missing'}), 403
-
-        # Remove "Bearer " prefix if present
         if token.startswith('Bearer '):
             token = token[7:]
-
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
             current_user = users_collection.find_one({'_id': ObjectId(data['user_id'])})
             if not current_user:
                 return jsonify({'error': 'User not found'}), 404
-
         except jwt.ExpiredSignatureError:
             return jsonify({'error': 'Token has expired'}), 401
         except jwt.InvalidTokenError:
             return jsonify({'error': 'Invalid token'}), 403
-
         return f(current_user, *args, **kwargs)
     return decorated
-# Root route
+
+# admin_required decorator
+def admin_required(f):
+    @wraps(f)
+    def decorated_admin(current_user, *args, **kwargs):
+        if not current_user.get('is_admin'):
+            return jsonify({'error': 'Admin privileges required.'}), 403
+        return f(current_user, *args, **kwargs)
+    return decorated_admin
+
+# ================= Page Routes =================
 @app.route('/')
 def home():
     return redirect(url_for('login_page'))
 
-# Registration page route
 @app.route('/register')
 def register_page():
     return render_template('register.html')
 
-# Login page route
 @app.route('/login')
 def login_page():
-    return render_template('login.html')
+    return render_template('login.html', recaptcha_site_key=app.config['RECAPTCHA_SITE_KEY'])
 
-# Dashboard page route
 @app.route('/dashboard')
 def dashboard_page():
     return render_template('dashboard.html')
 
-# Register a new user (POST request)
+@app.route('/otp-verification')
+def otp_verification_page():
+    return render_template('otp_verification.html')
+
+@app.route('/reset-password')
+def reset_password_request_page():
+    return render_template('reset_password_request.html')
+
+@app.route('/reset-password-otp')
+def reset_password_otp_page():
+    return render_template('reset_password_otp.html')
+
+# Admin Settings page
+@app.route('/settings')
+@token_required
+@admin_required
+def settings_page(current_user):
+    return render_template('settings.html')
+# ================= End of Page Routes =================
+
+# ================= Authentication Endpoints =================
+
+# Registration endpoint (self-registration)
 @app.route('/auth/register', methods=['POST'])
 def register():
     data = request.json
-
-    # Validate request data
     if not data or not all(key in data for key in ('name', 'email', 'password')):
         return jsonify({'error': 'Name, email, and password are required'}), 400
-
-    # Check if user already exists
     if users_collection.find_one({'email': data['email']}):
         return jsonify({'error': 'User already exists'}), 400
-
-    # Hash password and insert user into the database
     hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
+    otp = str(random.randint(100000, 999999))
+    otp_expiry = datetime.now(timezone.utc) + timedelta(minutes=10)
     user = {
         'name': data['name'],
         'email': data['email'],
         'password': hashed_password,
-        'created_at': datetime.now(timezone.utc)
+        'created_at': datetime.now(timezone.utc),
+        'is_verified': False,
+        'otp': otp,
+        'otp_expiry': otp_expiry,
+        'is_admin': False  # Regular user by default
     }
-
     try:
-        users_collection.insert_one(user)
+        result = users_collection.insert_one(user)
+        session['pending_user_id'] = str(result.inserted_id)
+        print(f"OTP for {data['email']} is: {otp}")
+        msg = Message('Your OTP Verification Code', recipients=[data['email']])
+        msg.body = f"Your OTP code is: {otp}. It is valid for 10 minutes."
+        mail.send(msg)
     except Exception as e:
         return jsonify({'error': f'Error saving user to database: {str(e)}'}), 500
+    return jsonify({'message': 'User registered successfully. Please verify OTP sent to your email.'}), 201
 
-    return jsonify({'message': 'User registered successfully'}), 201
-
-# User login (POST request)
-# User login (POST request)
+# Login endpoint with reCAPTCHA verification
 @app.route('/auth/login', methods=['POST'])
 def login():
     try:
-        data = request.json  # Get the request data
-        print("Received POST data:", data)
+        data = request.json
+        recaptcha_response = data.get('recaptcha_response')
+        if not recaptcha_response:
+            return jsonify({'error': 'Captcha verification failed.'}), 400
+        recaptcha_verify_url = "https://www.google.com/recaptcha/api/siteverify"
+        recaptcha_payload = {
+            'secret': app.config['RECAPTCHA_SECRET_KEY'],
+            'response': recaptcha_response
+        }
+        recaptcha_result = requests.post(recaptcha_verify_url, data=recaptcha_payload).json()
+        if not recaptcha_result.get("success"):
+            return jsonify({'error': 'Captcha verification failed.'}), 400
 
-        # Validate request data
         if not data or not all(key in data for key in ('email', 'password')):
             return jsonify({'error': 'Email and password are required'}), 400
-
-        # Find the user by email
         user = users_collection.find_one({'email': data['email']})
-
         if not user:
             return jsonify({'error': 'User not found'}), 404
-
-        # Validate password
         if not check_password_hash(user['password'], data['password']):
             return jsonify({'error': 'Invalid password'}), 401
-
-        # Generate JWT token
+        if not user.get('is_verified', False):
+            session['pending_user_id'] = str(user['_id'])
+            return jsonify({'requiresOtp': True, 'message': 'OTP verification required. Please verify OTP sent to your email.'}), 200
         token = generate_jwt_token(user['_id'])
+        session['jwtToken'] = token
         return jsonify({'token': token, 'message': 'Login successful'}), 200
-
     except Exception as e:
         print(f"Error during login: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
-
-# Route to redirect user to Google's OAuth page
+# Google OAuth endpoints (if needed)
 @app.route('/auth/google')
 def auth_google():
     flow = Flow.from_client_secrets_file(
@@ -167,8 +214,6 @@ def auth_callback():
         redirect_uri=url_for('auth_callback', _external=True)
     )
     flow.fetch_token(authorization_response=request.url)
-
-    # Store credentials in session
     credentials = flow.credentials
     session['credentials'] = {
         'token': credentials.token,
@@ -178,31 +223,15 @@ def auth_callback():
         'client_secret': credentials.client_secret,
         'scopes': credentials.scopes
     }
-
     return redirect(url_for('dashboard_page'))
-
-
-    # Validate user credentials
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
-    if not check_password_hash(user['password'], data['password']):
-        return jsonify({'error': 'Invalid password'}), 401
-
-    # Generate JWT token
-    token = generate_jwt_token(user['_id'])
-    return jsonify({'token': token, 'message': 'Login successful'}), 200
 
 @app.route('/analytics', methods=['GET'])
 def fetch_analytics_data():
     if 'credentials' not in session:
         return jsonify({'error': 'User not authenticated. Please connect to Google Analytics first.'}), 401
-
-    # Use stored credentials
     credentials = Credentials(**session['credentials'])
     analytics = build('analyticsdata', 'v1beta', credentials=credentials)
-
     try:
-        # Request body to fetch sessions and active users
         request_body = {
             'dateRanges': [{'startDate': '30daysAgo', 'endDate': 'today'}],
             'metrics': [
@@ -211,13 +240,10 @@ def fetch_analytics_data():
                 {'name': 'screenPageViews'}
             ],
         }
-
         response = analytics.properties().runReport(
             property=f'properties/{GA4_PROPERTY_ID}',
             body=request_body
         ).execute()
-
-        # Extract the metrics from the response
         data = {
             'activeUsers': response['rows'][0]['metricValues'][0]['value'],
             'sessions': response['rows'][0]['metricValues'][1]['value'],
@@ -228,8 +254,220 @@ def fetch_analytics_data():
         print(f"Error fetching Google Analytics data: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+# OTP Verification endpoint (for registration)
+@app.route('/auth/verify-otp', methods=['POST'])
+def verify_otp():
+    data = request.json
+    if not data or 'otp' not in data:
+        return jsonify({'error': 'OTP is required'}), 400
+    pending_user_id = session.get('pending_user_id')
+    if not pending_user_id:
+        return jsonify({'error': 'No pending OTP verification found.'}), 400
+    user = users_collection.find_one({'_id': ObjectId(pending_user_id)})
+    if not user:
+        return jsonify({'error': 'User not found.'}), 404
+    otp_expiry = user.get('otp_expiry')
+    if otp_expiry:
+        if otp_expiry.tzinfo is None:
+            otp_expiry = otp_expiry.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > otp_expiry:
+            return jsonify({'error': 'OTP has expired. Please request a new one.'}), 400
+    if str(user.get('otp')) != str(data['otp']):
+        return jsonify({'error': 'Invalid OTP.'}), 400
+    users_collection.update_one(
+        {'_id': ObjectId(pending_user_id)},
+        {'$set': {'is_verified': True}, '$unset': {'otp': "", 'otp_expiry': ""}}
+    )
+    session.pop('pending_user_id', None)
+    return jsonify({'message': 'OTP verified successfully. You can now log in.'}), 200
 
-# Protected route
+# Resend OTP endpoint (for registration)
+@app.route('/auth/resend-otp', methods=['POST'])
+def resend_otp():
+    pending_user_id = session.get('pending_user_id')
+    if not pending_user_id:
+        return jsonify({'error': 'No pending OTP verification found.'}), 400
+    user = users_collection.find_one({'_id': ObjectId(pending_user_id)})
+    if not user:
+        return jsonify({'error': 'User not found.'}), 404
+    new_otp = str(random.randint(100000, 999999))
+    new_otp_expiry = datetime.now(timezone.utc) + timedelta(minutes=10)
+    users_collection.update_one(
+        {'_id': ObjectId(pending_user_id)},
+        {'$set': {'otp': new_otp, 'otp_expiry': new_otp_expiry}}
+    )
+    print(f"Resent OTP for {user['email']} is: {new_otp}")
+    msg = Message('Your New OTP Verification Code', recipients=[user['email']])
+    msg.body = f"Your new OTP code is: {new_otp}. It is valid for 10 minutes."
+    mail.send(msg)
+    return jsonify({'message': 'OTP resent successfully.'}), 200
+
+# Reset Password: Step 1 – Request OTP
+@app.route('/auth/reset-password-request', methods=['POST'])
+def reset_password_request():
+    data = request.json
+    if not data or 'email' not in data:
+        return jsonify({'error': 'Email is required'}), 400
+    email = data['email']
+    user = users_collection.find_one({'email': email})
+    if not user:
+        return jsonify({'error': 'User with this email not found.'}), 404
+    reset_otp = str(random.randint(100000, 999999))
+    reset_otp_expiry = datetime.now(timezone.utc) + timedelta(minutes=10)
+    users_collection.update_one(
+        {'_id': user['_id']},
+        {'$set': {'reset_otp': reset_otp, 'reset_otp_expiry': reset_otp_expiry}}
+    )
+    session['pending_reset_email'] = email
+    print(f"Reset OTP for {email} is: {reset_otp}")
+    msg = Message('Your Password Reset OTP', recipients=[email])
+    msg.body = f"Your password reset OTP is: {reset_otp}. It is valid for 10 minutes."
+    mail.send(msg)
+    return jsonify({'message': 'Reset OTP sent to your email.'}), 200
+
+# Reset Password: Step 2 – Verify OTP and Update Password
+@app.route('/auth/reset-password', methods=['POST'])
+def reset_password():
+    data = request.json
+    if not data or not all(k in data for k in ('otp', 'new_password', 'confirm_password')):
+        return jsonify({'error': 'OTP, new password and confirm password are required.'}), 400
+    if data['new_password'] != data['confirm_password']:
+        return jsonify({'error': 'Passwords do not match.'}), 400
+    email = session.get('pending_reset_email')
+    if not email:
+        return jsonify({'error': 'No pending password reset request found.'}), 400
+    user = users_collection.find_one({'email': email})
+    if not user:
+        return jsonify({'error': 'User not found.'}), 404
+    reset_otp = user.get('reset_otp')
+    reset_otp_expiry = user.get('reset_otp_expiry')
+    if not reset_otp or not reset_otp_expiry:
+        return jsonify({'error': 'No reset OTP found. Please request a new one.'}), 400
+    if reset_otp_expiry.tzinfo is None:
+        reset_otp_expiry = reset_otp_expiry.replace(tzinfo=timezone.utc)
+    if datetime.now(timezone.utc) > reset_otp_expiry:
+        return jsonify({'error': 'Reset OTP has expired. Please request a new one.'}), 400
+    if str(reset_otp) != str(data['otp']):
+        return jsonify({'error': 'Invalid reset OTP.'}), 400
+    new_hashed_password = generate_password_hash(data['new_password'], method='pbkdf2:sha256')
+    users_collection.update_one(
+        {'_id': user['_id']},
+        {'$set': {'password': new_hashed_password}, '$unset': {'reset_otp': "", 'reset_otp_expiry': ""}}
+    )
+    session.pop('pending_reset_email', None)
+    return jsonify({'message': 'Password updated successfully. Please log in with your new password.'}), 200
+
+# ================= Admin-Only Endpoints =================
+
+# Admin Invitation: Invite a new user
+@app.route('/auth/invite-user', methods=['POST'])
+@token_required
+@admin_required
+def invite_user(current_user):
+    data = request.json
+    if not data or not all(k in data for k in ('email', 'password')):
+        return jsonify({'error': 'Email and password are required.'}), 400
+    email = data['email']
+    if users_collection.find_one({'email': email}):
+        return jsonify({'error': 'User already exists with this email.'}), 400
+    hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
+    invite_token = secrets.token_urlsafe(32)
+    new_user = {
+        'name': '',  # Optionally update later
+        'email': email,
+        'password': hashed_password,
+        'created_at': datetime.now(timezone.utc),
+        'is_verified': False,  # Will be set to True when the user confirms the invite
+        'invite_token': invite_token,
+        'is_admin': False,
+        'created_by': current_user['_id']  # Record which admin created this user
+    }
+    try:
+        result = users_collection.insert_one(new_user)
+        confirm_link = request.host_url.rstrip('/') + url_for('confirm_invite') + '?token=' + invite_token
+        msg = Message('Invitation to join Social Dashboard', recipients=[email])
+        msg.body = f"You have been invited to join the Social Dashboard.\n\nPlease click the following link to confirm your account:\n{confirm_link}\n\nIf you did not expect this, please ignore this email."
+        mail.send(msg)
+        return jsonify({'message': 'Invitation sent successfully.'}), 200
+    except Exception as e:
+        return jsonify({'error': f'Error inviting user: {str(e)}'}), 500
+
+# Admin Invitation Confirmation Endpoint
+@app.route('/auth/confirm-invite', methods=['GET'])
+def confirm_invite():
+    token = request.args.get('token')
+    if not token:
+        return "Invalid or missing token.", 400
+    user = users_collection.find_one({'invite_token': token})
+    if not user:
+        return "Invalid token or user not found.", 400
+    users_collection.update_one(
+        {'_id': user['_id']},
+        {'$set': {'is_verified': True}, '$unset': {'invite_token': ""}}
+    )
+    return "Your account has been confirmed! You can now log in.", 200
+
+# Endpoint to list all users created by the current admin
+@app.route('/api/users', methods=['GET'])
+@token_required
+@admin_required
+def list_users(current_user):
+    try:
+        # Return only the users created by the logged-in admin
+        users = list(users_collection.find({'created_by': current_user['_id']}))
+        for user in users:
+            user['_id'] = str(user['_id'])
+            if 'created_at' in user:
+                user['created_at'] = user['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+            # Remove sensitive fields
+            user.pop('password', None)
+            user.pop('otp', None)
+            user.pop('otp_expiry', None)
+            user.pop('invite_token', None)
+            user.pop('reset_otp', None)
+            user.pop('reset_otp_expiry', None)
+            # Optionally, convert created_by to string if needed:
+            user['created_by'] = str(user.get('created_by', ''))
+        return jsonify(users), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Endpoint to update a user (admin only)
+@app.route('/api/users/<user_id>', methods=['PUT'])
+@token_required
+@admin_required
+def update_user(current_user, user_id):
+    data = request.json
+    try:
+        update_data = {}
+        if 'name' in data:
+            update_data['name'] = data['name']
+        if 'email' in data:
+            update_data['email'] = data['email']
+        if 'is_admin' in data:
+            update_data['is_admin'] = data['is_admin']
+        if update_data:
+            users_collection.update_one({'_id': ObjectId(user_id)}, {'$set': update_data})
+            return jsonify({'message': 'User updated successfully.'}), 200
+        else:
+            return jsonify({'error': 'No valid fields to update.'}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Endpoint to delete a user (admin only)
+@app.route('/api/users/<user_id>', methods=['DELETE'])
+@token_required
+@admin_required
+def delete_user(current_user, user_id):
+    try:
+        users_collection.delete_one({'_id': ObjectId(user_id)})
+        return jsonify({'message': 'User deleted successfully.'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ================= End of Authentication Endpoints =================
+
+# Example Protected Route
 @app.route('/protected', methods=['GET'])
 @token_required
 def protected_route(current_user):
@@ -248,7 +486,8 @@ def get_user_profile(current_user):
     try:
         user_profile = {
             'name': current_user['name'],
-            'email': current_user['email']
+            'email': current_user['email'],
+            'is_admin': current_user.get('is_admin', False)
         }
         return jsonify(user_profile), 200
     except Exception as e:
