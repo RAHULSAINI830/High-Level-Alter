@@ -5,3 +5,13 @@ flask-cors==3.0.10
 flask-mail==0.9.1
 werkzeug==2.2.3
 pyjwt==2.7.0  # Add this line
+google-auth==2.17.3
+google-auth-oauthlib==1.0.0
+google-api-python-client==2.92.0
+Flask==2.2.3
+gunicorn==20.1.0
+pymongo==4.3.3
+python-dotenv==1.0.0
+
+
+
