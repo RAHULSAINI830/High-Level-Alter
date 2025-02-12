@@ -33,7 +33,6 @@
       color: #fff;
       padding: 20px;
     }
-    /* Sidebar header now displays only the logo */
     #sidebar-header {
       text-align: center;
       margin-bottom: 30px;
@@ -74,7 +73,7 @@
       padding: 30px;
       background-color: #fff;
     }
-    /* Header Section (only for Home) */
+    /* Header Section (for Home) */
     #headerSection {
       text-align: center;
       margin-bottom: 30px;
@@ -85,13 +84,13 @@
       gap: 15px;
       font-size: 2.5rem;
       color: #ee5566;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
     }
     #headerSection .home-heading img {
       width: 50px;
       height: 50px;
     }
-    /* Additional Section for Analytics (Detailed Table) */
+    /* Additional Section for Analytics */
     #additionalSection {
       margin-bottom: 30px;
     }
@@ -127,28 +126,12 @@
       50% { opacity: 1; }
       100% { opacity: 0.2; }
     }
-    /* Analytics Card Styling (for summary cards above table in Analytics) */
-    .analytics-card {
-      border: 1px solid #dee2e6;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 20px;
-      background: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .analytics-card h5 {
-      margin-bottom: 10px;
-    }
-    .analytics-card p {
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
-    /* Table Styling */
+    /* Table/Card Styling */
     .table-card {
       background-color: #f0f7fd;
       padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
       margin-bottom: 20px;
     }
     table {
@@ -199,9 +182,10 @@
     .pagination-btn:hover:not(:disabled) {
       background-color: #d44a58;
     }
-    /* Charts and Map Section (Common for Home and Analytics) */
+    /* Charts and Map Section (only in Analytics) */
     #charts-section {
       margin-bottom: 30px;
+      display: none;
     }
     .card-section {
       display: flex;
@@ -220,6 +204,23 @@
     canvas {
       width: 100% !important;
       height: 100% !important;
+    }
+    /* Filter Controls Styling */
+    .filter-icons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+    .filter-icons i {
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #5563DE;
+    }
+    #activeFiltersLabel {
+      margin-bottom: 10px;
+      font-style: italic;
+      color: #555;
     }
   </style>
 </head>
@@ -247,19 +248,19 @@
         <button onclick="window.location.href='/settings'" class="btn btn-secondary mt-3">Admin Settings</button>
       </div>
     </div>
-    
+
     <!-- Main Content Area -->
     <div class="content animate__animated animate__fadeIn">
-      <!-- Header Section (only for Home) -->
+      <!-- Header Section (for Home) -->
       <div id="headerSection">
         <div class="home-heading">
           <img src="/static/images/logo.png" alt="Logo">
           <h2>Welcome, <span id="user-name">User</span>!</h2>
         </div>
       </div>
-      <!-- Additional Section: In Analytics, the detailed table is injected here -->
+      <!-- Additional Section: Content injected here for Integrations or Analytics -->
       <div id="additionalSection"></div>
-      <!-- Common Charts Section (always visible in Home and Analytics) -->
+      <!-- Charts Section -->
       <div id="charts-section">
         <div class="card-section">
           <div class="card chart-card">
@@ -279,8 +280,108 @@
     </div>
   </div>
 
-  <!-- JavaScript -->
-  <!-- External Libraries: Chart.js is loaded in the head -->
+  <!-- Date Filter Modal -->
+  <div class="modal fade" id="dateFilterModal" tabindex="-1" aria-labelledby="dateFilterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="dateFilterModalLabel">Select Date Filter</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-grid gap-2">
+            <button class="btn btn-outline-primary" onclick="applyQuickDateFilter('30days')">Last 30 Days</button>
+            <button class="btn btn-outline-primary" onclick="applyQuickDateFilter('90days')">Last 90 Days</button>
+            <button class="btn btn-outline-primary" onclick="applyQuickDateFilter('lastMonth')">Last Month</button>
+          </div>
+          <hr>
+          <label for="customStartDate" class="form-label">Custom Start Date:</label>
+          <input type="date" class="form-control" id="customStartDate">
+          <label for="customEndDate" class="form-label mt-2">Custom End Date:</label>
+          <input type="date" class="form-control" id="customEndDate">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="applyCustomDateFilter()">Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Other Filters Modal -->
+  <div class="modal fade" id="otherFilterModal" tabindex="-1" aria-labelledby="otherFilterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="otherFilterModalLabel">Other Filters</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Country Dropdown -->
+          <div class="mb-3">
+            <label for="modalFilterCountry" class="form-label">Country:</label>
+            <select class="form-select" id="modalFilterCountry">
+              <option value="">Select Country</option>
+              <option value="United States">United States</option>
+              <option value="India">India</option>
+              <option value="Brazil">Brazil</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <!-- Device, Event, and Page Path -->
+          <div class="mb-3">
+            <label for="modalFilterDevice" class="form-label">Device:</label>
+            <input type="text" class="form-control" id="modalFilterDevice" placeholder="desktop, mobile, tablet">
+          </div>
+          <div class="mb-3">
+            <label for="modalFilterEvent" class="form-label">Event:</label>
+            <input type="text" class="form-control" id="modalFilterEvent" placeholder="Enter event name">
+          </div>
+          <div class="mb-3">
+            <label for="modalFilterPagePath" class="form-label">Page Path Keyword:</label>
+            <input type="text" class="form-control" id="modalFilterPagePath" placeholder="Enter page path keyword">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Match Type:</label>
+            <div>
+              <label><input type="radio" name="modalMatchType" value="CONTAINS" checked> Contains</label>
+              <label class="ms-2"><input type="radio" name="modalMatchType" value="EXACT"> Exact</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <!-- This button calls applyOtherFilters (now defined) -->
+          <button type="button" class="btn btn-primary" onclick="applyOtherFilters()">Apply Filters</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Icons (Displayed in Analytics Tab) -->
+  <script>
+    function addFilterIcons() {
+      const container = document.getElementById('additionalSection');
+      if (!container) return;
+      container.insertAdjacentHTML('afterbegin', `
+        <div class="d-flex justify-content-end filter-icons">
+          <i class="fas fa-calendar-alt" id="dateFilterIcon" title="Date Filter"></i>
+          <i class="fas fa-filter" id="otherFilterIcon" title="Other Filters"></i>
+        </div>
+        <div id="activeFiltersLabel"></div>
+      `);
+      document.getElementById('dateFilterIcon').addEventListener('click', () => {
+        const dateModal = new bootstrap.Modal(document.getElementById('dateFilterModal'));
+        dateModal.show();
+      });
+      document.getElementById('otherFilterIcon').addEventListener('click', () => {
+        const otherModal = new bootstrap.Modal(document.getElementById('otherFilterModal'));
+        otherModal.show();
+      });
+    }
+  </script>
+
+  <!-- JavaScript Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     // Global Variables
@@ -292,32 +393,71 @@
     let pagePathViewsChart;
     let userEngagementChart;
     let countryMapInstance;
+    let currentSection = 'home';
+    let activeFilterQuery = "";
 
-    // Run initialization after DOM is loaded
+    // Loader helper functions
+    function showLoader() {
+      document.getElementById('loader').style.display = 'flex';
+    }
+    function hideLoader() {
+      document.getElementById('loader').style.display = 'none';
+    }
+
+    // Define applyOtherFilters to resolve the error
+    function applyOtherFilters() {
+      applyFilters();
+    }
+
+    // Initialize when DOM is loaded
     document.addEventListener("DOMContentLoaded", () => {
       fetchUserInfo();
-      // Attach pagination and table button listeners if they exist (they will be attached after switching to Analytics)
-      // These listeners are also attached in switchSection() after injecting the table
+      switchSection('home'); // Default to Home (header + charts)
     });
 
-    // Sidebar Navigation: Switch between Home, Integrations, and Analytics sections
+    // Switch between Home, Integrations, and Analytics sections
     function switchSection(sectionId) {
-      // Hide header and additional section by default
+      currentSection = sectionId;
       document.getElementById('headerSection').style.display = 'none';
       document.getElementById('additionalSection').innerHTML = '';
-      // Hide common charts section by default (will be shown selectively)
       document.getElementById('charts-section').style.display = 'none';
 
       if (sectionId === 'home') {
         // Home: Show header and charts
         document.getElementById('headerSection').style.display = 'block';
         document.getElementById('charts-section').style.display = 'block';
+        fetchAnalyticsData();
       } else if (sectionId === 'integrations') {
-        // Integrations: Show integrations content only (no header or charts)
-        // (Assuming integrationsSection content is static and already in the HTML)
-      } else if (sectionId === 'analytics') {
-        // Analytics: Inject detailed table into additionalSection and show charts
         document.getElementById('additionalSection').innerHTML = `
+          <div class="card table-card mb-4">
+            <h3>Integrations</h3>
+            <div class="row">
+              <div class="col-md-3">
+                <button id="btn-google-ads" class="btn btn-action w-100" onclick="connectIntegration('google_ads')">
+                  <i class="fab fa-google"></i> Google Ads
+                </button>
+              </div>
+              <div class="col-md-3">
+                <button id="btn-facebook-ads" class="btn btn-action w-100" onclick="connectIntegration('facebook_ads')">
+                  <i class="fab fa-facebook"></i> Facebook Ads
+                </button>
+              </div>
+              <div class="col-md-3">
+                <button id="btn-google-business" class="btn btn-action w-100" onclick="connectIntegration('google_business')">
+                  <i class="fab fa-google"></i> Google Business
+                </button>
+              </div>
+              <div class="col-md-3">
+                <button id="btn-chat-bot" class="btn btn-action w-100" onclick="connectIntegration('chat_bot')">
+                  <i class="fas fa-comments"></i> Chat Bot
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (sectionId === 'analytics') {
+        addFilterIcons();
+        document.getElementById('additionalSection').insertAdjacentHTML('beforeend', `
           <div class="card table-card mb-4">
             <h3>Detailed User Data</h3>
             <table id="data-table">
@@ -349,32 +489,22 @@
               <button id="nextPage" class="pagination-btn">Next</button>
             </div>
           </div>
-        `;
-        // Attach event listeners for newly injected table controls
+        `);
+        document.getElementById('charts-section').style.display = 'block';
+        fetchAnalyticsData();
         document.getElementById('prevPage')?.addEventListener('click', () => {
-          if (currentPage > 1) {
-            currentPage--;
-            displayTableData();
-          }
+          if (currentPage > 1) { currentPage--; displayTableData(); }
         });
         document.getElementById('nextPage')?.addEventListener('click', () => {
-          const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-          if (currentPage < totalPages) {
-            currentPage++;
-            displayTableData();
-          }
+          const totalPages = Math.ceil(aggregateTableData(filteredData).length / rowsPerPage);
+          if (currentPage < totalPages) { currentPage++; displayTableData(); }
         });
         document.getElementById('downloadExcel')?.addEventListener('click', downloadExcel);
         document.getElementById('shareTable')?.addEventListener('click', shareTable);
-
-        // Show charts along with the table
-        document.getElementById('charts-section').style.display = 'block';
-        // Fetch detailed analytics data to populate table and update charts/maps
-        fetchAnalyticsData();
       }
     }
 
-    // Sidebar Event Listeners
+    // Sidebar event listeners
     document.getElementById('nav-home').addEventListener('click', function(e) {
       e.preventDefault();
       setActiveSidebarLink('nav-home');
@@ -392,245 +522,157 @@
     });
 
     function setActiveSidebarLink(linkId) {
-      document.querySelectorAll('.sidebar a').forEach(link => {
-        link.classList.remove('active');
-      });
+      document.querySelectorAll('.sidebar a').forEach(link => { link.classList.remove('active'); });
       document.getElementById(linkId).classList.add('active');
     }
 
-    // Dummy function for integration connect: update button style and sidebar header
+    // Dummy integration connection function
     function connectIntegration(integration) {
       let btn;
       switch (integration) {
-        case 'google_ads':
-          btn = document.getElementById('btn-google-ads');
-          break;
-        case 'facebook_ads':
-          btn = document.getElementById('btn-facebook-ads');
-          break;
-        case 'google_business':
-          btn = document.getElementById('btn-google-business');
-          break;
-        case 'chat_bot':
-          btn = document.getElementById('btn-chat-bot');
-          break;
-        default:
-          alert("Integration not recognized.");
-          return;
+        case 'google_ads': btn = document.getElementById('btn-google-ads'); break;
+        case 'facebook_ads': btn = document.getElementById('btn-facebook-ads'); break;
+        case 'google_business': btn = document.getElementById('btn-google-business'); break;
+        case 'chat_bot': btn = document.getElementById('btn-chat-bot'); break;
+        default: alert("Integration not recognized."); return;
       }
       if (btn) {
         btn.style.backgroundColor = 'green';
         btn.innerText = 'Connected';
         btn.disabled = true;
-        // Update sidebar header with logo image
         document.getElementById('sidebar-header').innerHTML = '<img src="/static/images/logo.png" alt="Logo">';
       }
     }
 
-    // Fetch Analytics Data from backend
-    async function fetchAnalyticsData() {
+    // Fetch Analytics Data with loader
+    async function fetchAnalyticsData(url = '/analytics') {
       const token = localStorage.getItem('jwtToken');
-      if (!token) {
-        alert("You are not logged in. Redirecting to login...");
-        window.location.href = '/login';
-        return;
-      }
+      if (!token) { alert("Not logged in"); window.location.href = '/login'; return; }
+      showLoader();
       try {
-        const response = await fetch('/analytics', {
+        const response = await fetch(url, {
           method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
         });
         if (response.ok) {
           const data = await response.json();
           if (data && data.rows) {
-            // Save data globally for charts and table
             tableData = data.rows;
             filteredData = data.rows;
-            // Update summary cards in Analytics section if container exists
-            const analyticsContent = document.getElementById('analyticsContent');
-            if (analyticsContent) {
-              analyticsContent.innerHTML = `
-                <div class="row">
-                  <div class="col-md-4">
-                    <div class="analytics-card">
-                      <h5>Active Users</h5>
-                      <p>${data.rows[0].metricValues[0].value}</p>
-                    </div>
-                  </div>
-                  <div class="col-md-4">
-                    <div class="analytics-card">
-                      <h5>Sessions</h5>
-                      <p>${data.rows[0].metricValues[1].value}</p>
-                    </div>
-                  </div>
-                  <div class="col-md-4">
-                    <div class="analytics-card">
-                      <h5>Page Views</h5>
-                      <p>${data.rows[0].metricValues[2].value}</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-md-4">
-                    <div class="analytics-card">
-                      <h5>Engaged Sessions</h5>
-                      <p>${data.rows[0].metricValues[3].value}</p>
-                    </div>
-                  </div>
-                  <div class="col-md-4">
-                    <div class="analytics-card">
-                      <h5>Engagement Rate</h5>
-                      <p>${data.rows[0].metricValues[4].value}</p>
-                    </div>
-                  </div>
-                  <div class="col-md-4">
-                    <div class="analytics-card">
-                      <h5>Avg. Session Duration</h5>
-                      <p>${data.rows[0].metricValues[5].value}</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-md-6">
-                    <div class="analytics-card">
-                      <h5>New Users</h5>
-                      <p>${data.rows[0].metricValues[6].value}</p>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="analytics-card">
-                      <h5>Total Revenue</h5>
-                      <p>${data.rows[0].metricValues[7].value}</p>
-                    </div>
-                  </div>
-                </div>
-              `;
-            }
-            // Populate detailed table and update charts
-            displayTableData();
+            if (currentSection === 'analytics') { displayTableData(); }
             updatePagePathViewsChart();
             updateUserEngagementChart();
             createCountryMap(data);
           } else {
-            if(document.getElementById('analyticsContent')){
-              document.getElementById('analyticsContent').innerHTML = `<p class="text-center text-danger">No data returned from GA API.</p>`;
-            }
+            document.getElementById('activeFiltersLabel').innerHTML = `<p class="text-center text-danger">No data returned from GA API.</p>`;
           }
         } else {
-          if(document.getElementById('analyticsContent')){
-            document.getElementById('analyticsContent').innerHTML = `<p class="text-center text-danger">Not connected to Google Analytics.</p>`;
-          }
+          document.getElementById('activeFiltersLabel').innerHTML = `<p class="text-center text-danger">Not connected to Google Analytics.</p>`;
         }
       } catch (error) {
         console.error('Error fetching analytics data:', error);
         alert("An error occurred while fetching analytics data.");
+      } finally {
+        hideLoader();
       }
     }
 
-    // Chart Functions
-    function updatePagePathViewsChart() {
-      const canvas = document.getElementById('pagePathViewsChart');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      const displayData = selectedPaths.length > 0 ? selectedPaths : filteredData.slice(0, 5);
-      const pagePaths = displayData.map(row => row.dimensionValues[0].value || 'Unknown');
-      const views = displayData.map(row => row.metricValues[2].value);
-      if (pagePathViewsChart) {
-        pagePathViewsChart.destroy();
+    // Build filter query string and fetch filtered data
+    function applyFilters() {
+      const startDate = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : "";
+      const endDate = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : "";
+      const customStart = document.getElementById('customStartDate') ? document.getElementById('customStartDate').value : "";
+      const customEnd = document.getElementById('customEndDate') ? document.getElementById('customEndDate').value : "";
+      const finalStart = customStart || startDate;
+      const finalEnd = customEnd || endDate;
+      const country = document.getElementById('modalFilterCountry') ? document.getElementById('modalFilterCountry').value : (document.getElementById('filterCountry') ? document.getElementById('filterCountry').value : "");
+      const device = document.getElementById('modalFilterDevice') ? document.getElementById('modalFilterDevice').value : (document.getElementById('filterDevice') ? document.getElementById('filterDevice').value : "");
+      const eventVal = document.getElementById('modalFilterEvent') ? document.getElementById('modalFilterEvent').value : (document.getElementById('filterEvent') ? document.getElementById('filterEvent').value : "");
+      const pagePath = document.getElementById('modalFilterPagePath') ? document.getElementById('modalFilterPagePath').value : (document.getElementById('filterPagePath') ? document.getElementById('filterPagePath').value : "");
+      const matchTypeElem = document.querySelector('input[name="modalMatchType"]:checked') || document.querySelector('input[name="matchType"]:checked');
+      const matchType = matchTypeElem ? matchTypeElem.value : "CONTAINS";
+
+      let url = '/analytics?';
+      if (finalStart) url += `startDate=${encodeURIComponent(finalStart)}&`;
+      if (finalEnd) url += `endDate=${encodeURIComponent(finalEnd)}&`;
+      if (country) url += `country=${encodeURIComponent(country)}&`;
+      if (device) url += `device=${encodeURIComponent(device)}&`;
+      if (eventVal) url += `event=${encodeURIComponent(eventVal)}&`;
+      if (pagePath) url += `pagePath=${encodeURIComponent(pagePath)}&matchType=${encodeURIComponent(matchType)}&`;
+      url = url.replace(/&$/, '');
+      activeFilterQuery = "";
+      if (finalStart || finalEnd) activeFilterQuery += `Date: ${finalStart} to ${finalEnd} | `;
+      if (country) activeFilterQuery += `Country: ${country} | `;
+      if (device) activeFilterQuery += `Device: ${device} | `;
+      if (eventVal) activeFilterQuery += `Event: ${eventVal} | `;
+      if (pagePath) activeFilterQuery += `Page Path (${matchType}): ${pagePath}`;
+      document.getElementById('activeFiltersLabel').innerText = activeFilterQuery;
+      currentPage = 1;
+      fetchAnalyticsData(url);
+      const dateModalEl = document.getElementById('dateFilterModal');
+      const otherModalEl = document.getElementById('otherFilterModal');
+      if (dateModalEl) { bootstrap.Modal.getInstance(dateModalEl)?.hide(); }
+      if (otherModalEl) { bootstrap.Modal.getInstance(otherModalEl)?.hide(); }
+    }
+
+    // Quick Date Filter from Date Filter Modal
+    function applyQuickDateFilter(option) {
+      let startDate = "", endDate = "";
+      const today = new Date();
+      if (option === '30days') {
+        const pastDate = new Date();
+        pastDate.setDate(today.getDate() - 30);
+        startDate = pastDate.toISOString().split('T')[0];
+        endDate = today.toISOString().split('T')[0];
+      } else if (option === '90days') {
+        const pastDate = new Date();
+        pastDate.setDate(today.getDate() - 90);
+        startDate = pastDate.toISOString().split('T')[0];
+        endDate = today.toISOString().split('T')[0];
+      } else if (option === 'lastMonth') {
+        const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        const lastDayLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+        startDate = firstDayLastMonth.toISOString().split('T')[0];
+        endDate = lastDayLastMonth.toISOString().split('T')[0];
       }
-      pagePathViewsChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: pagePaths,
-          datasets: [{
-            label: 'Views',
-            data: views,
-            backgroundColor: 'rgba(238, 85, 102, 0.6)',
-            borderColor: 'rgba(238, 85, 102, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: { y: { beginAtZero: true } }
+      if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = startDate;
+      if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = endDate;
+      if (document.getElementById('customStartDate')) document.getElementById('customStartDate').value = startDate;
+      if (document.getElementById('customEndDate')) document.getElementById('customEndDate').value = endDate;
+    }
+
+    // Custom Date Filter from Date Filter Modal
+    function applyCustomDateFilter() {
+      applyFilters();
+    }
+
+    // Aggregate table data by page path so duplicates are merged
+    function aggregateTableData(rows) {
+      const aggregated = {};
+      rows.forEach(row => {
+        const pagePath = row.dimensionValues[0].value || 'Unknown';
+        if (!aggregated[pagePath]) {
+          aggregated[pagePath] = JSON.parse(JSON.stringify(row));
+        } else {
+          for (let i = 0; i < row.metricValues.length; i++) {
+            let prevVal = parseFloat(aggregated[pagePath].metricValues[i].value);
+            let currVal = parseFloat(row.metricValues[i].value);
+            aggregated[pagePath].metricValues[i].value = (prevVal + currVal).toString();
+          }
         }
       });
+      return Object.values(aggregated);
     }
 
-    function updateUserEngagementChart() {
-      const canvas = document.getElementById('userEngagementChart');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      const displayData = selectedPaths.length > 0 ? selectedPaths : filteredData.slice(0, 5);
-      const pagePaths = displayData.map(row => row.dimensionValues[0].value || 'Unknown');
-      const engagementTimes = displayData.map(row => row.metricValues[5].value);
-      if (userEngagementChart) {
-        userEngagementChart.destroy();
-      }
-      userEngagementChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: pagePaths,
-          datasets: [{
-            label: 'Avg. Engagement Time',
-            data: engagementTimes,
-            borderColor: 'rgba(255, 159, 64, 1)',
-            backgroundColor: 'rgba(255, 159, 64, 0.2)',
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: { y: { beginAtZero: true } }
-        }
-      });
-    }
-    
-
-    function createCountryMap(data) {
-      if (countryMapInstance) {
-        countryMapInstance.remove();
-      }
-      countryMapInstance = L.map('countryMap').setView([20, 0], 2);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(countryMapInstance);
-      data.rows.forEach(row => {
-        const countryName = row.dimensionValues[1].value;
-        const views = row.metricValues[2].value;
-        const latLng = getCountryCoordinates(countryName);
-        if (latLng) {
-          L.circleMarker(latLng, {
-            radius: Math.sqrt(views) / 2,
-            fillColor: "#ee5566",
-            color: "#ee5566",
-            weight: 1,
-            fillOpacity: 0.8
-          }).addTo(countryMapInstance).bindPopup(`${countryName}: ${views} views`);
-        }
-      });
-    }
-
-    function getCountryCoordinates(country) {
-      const countryCoordinates = {
-        "United States": [37.0902, -95.7129],
-        "India": [20.5937, 78.9629],
-        "Brazil": [-14.2350, -51.9253]
-      };
-      return countryCoordinates[country] || null;
-    }
-
-    // Table and Pagination Functions
+    // Display aggregated table data with pagination
     function displayTableData() {
       const tableBody = document.querySelector('#data-table tbody');
       if (!tableBody) return;
-      tableBody.innerHTML = '';
+      tableBody.innerHTML = "";
+      const aggregatedData = aggregateTableData(filteredData);
       const start = (currentPage - 1) * rowsPerPage;
       const end = start + rowsPerPage;
-      const paginatedData = filteredData.slice(start, end);
+      const paginatedData = aggregatedData.slice(start, end);
       paginatedData.forEach(row => {
         const path = row.dimensionValues[0].value || 'Unknown';
         const isChecked = selectedPaths.some(selectedRow => selectedRow.dimensionValues[0].value === path);
@@ -668,7 +710,7 @@
     }
 
     function updatePagination() {
-      const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+      const totalPages = Math.ceil(aggregateTableData(filteredData).length / rowsPerPage);
       document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
       document.getElementById('prevPage').disabled = currentPage === 1;
       document.getElementById('nextPage').disabled = currentPage === totalPages;
@@ -676,7 +718,8 @@
 
     function downloadExcel() {
       let csvContent = "data:text/csv;charset=utf-8,Page Path,Views,Active Users,Views per Active User,Avg. Engagement Time,Event Count,Total Revenue,Bounce Rate\n";
-      tableData.forEach(row => {
+      const aggregatedData = aggregateTableData(tableData);
+      aggregatedData.forEach(row => {
         const csvRow = [
           row.dimensionValues[0].value || 'Unknown',
           row.metricValues[2].value,
@@ -704,6 +747,86 @@
       });
     }
 
+    // Chart Functions
+    function updatePagePathViewsChart() {
+      const canvas = document.getElementById('pagePathViewsChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const displayData = selectedPaths.length > 0 ? selectedPaths : aggregateTableData(filteredData).slice(0, 5);
+      const pagePaths = displayData.map(row => row.dimensionValues[0].value || 'Unknown');
+      const views = displayData.map(row => row.metricValues[2].value);
+      if (pagePathViewsChart) { pagePathViewsChart.destroy(); }
+      pagePathViewsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: pagePaths,
+          datasets: [{
+            label: 'Views',
+            data: views,
+            backgroundColor: 'rgba(238, 85, 102, 0.6)',
+            borderColor: 'rgba(238, 85, 102, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+      });
+    }
+
+    function updateUserEngagementChart() {
+      const canvas = document.getElementById('userEngagementChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const displayData = selectedPaths.length > 0 ? selectedPaths : aggregateTableData(filteredData).slice(0, 5);
+      const pagePaths = displayData.map(row => row.dimensionValues[0].value || 'Unknown');
+      const engagementTimes = displayData.map(row => row.metricValues[5].value);
+      if (userEngagementChart) { userEngagementChart.destroy(); }
+      userEngagementChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: pagePaths,
+          datasets: [{
+            label: 'Avg. Engagement Time',
+            data: engagementTimes,
+            borderColor: 'rgba(255, 159, 64, 1)',
+            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+            fill: true
+          }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+      });
+    }
+
+    function createCountryMap(data) {
+      if (countryMapInstance) { countryMapInstance.remove(); }
+      countryMapInstance = L.map('countryMap').setView([20, 0], 2);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(countryMapInstance);
+      data.rows.forEach(row => {
+        const countryName = row.dimensionValues[1].value;
+        const views = row.metricValues[2].value;
+        const latLng = getCountryCoordinates(countryName);
+        if (latLng) {
+          L.circleMarker(latLng, {
+            radius: Math.sqrt(views) / 2,
+            fillColor: "#ee5566",
+            color: "#ee5566",
+            weight: 1,
+            fillOpacity: 0.8
+          }).addTo(countryMapInstance).bindPopup(`${countryName}: ${views} views`);
+        }
+      });
+    }
+
+    function getCountryCoordinates(country) {
+      const countryCoordinates = {
+        "United States": [37.0902, -95.7129],
+        "India": [20.5937, 78.9629],
+        "Brazil": [-14.2350, -51.9253]
+      };
+      return countryCoordinates[country] || null;
+    }
+
     // Fetch User Info
     async function fetchUserInfo() {
       const token = localStorage.getItem('jwtToken');
@@ -715,19 +838,13 @@
       try {
         const response = await fetch('/api/user/profile', {
           method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
         });
         if (response.ok) {
           const user = await response.json();
           document.getElementById('user-name').innerText = user.name;
-          if (user.is_admin) {
-            document.getElementById('adminSettings').style.display = 'block';
-          }
-          // Hide loader and show dashboard container
-          document.getElementById('loader').style.display = 'none';
+          if (user.is_admin) { document.getElementById('adminSettings').style.display = 'block'; }
+          hideLoader();
           document.getElementById('dashboard-container').style.display = 'flex';
         } else {
           alert("Failed to fetch user info. Please log in again.");

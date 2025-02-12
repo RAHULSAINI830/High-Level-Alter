@@ -18,25 +18,21 @@ import requests
 import json
 
 # ================= Configuration =================
-
-# Google OAuth2 and Analytics Setup
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # For local testing only
-CLIENT_SECRET_FILE = 'oauth2-credentials.json'  # Ensure this file exists in your project root
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+CLIENT_SECRET_FILE = 'oauth2-credentials.json'
 SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
-GA4_PROPERTY_ID = '376596938'  # Replace with your actual numeric GA4 Property ID
+GA4_PROPERTY_ID = '376596938'
 
 # Service Account for Google Business Profile (Optional)
-SERVICE_ACCOUNT_KEY_PATH = 'service-account-key.json'  # Ensure this file exists if using business profile integration
-GBP_ACCOUNT_ID = os.getenv('GBP_ACCOUNT_ID')  # Set this environment variable to your GBP account ID
+SERVICE_ACCOUNT_KEY_PATH = 'service-account-key.json'
+GBP_ACCOUNT_ID = os.getenv('GBP_ACCOUNT_ID')
 
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app)
-
-# Secret key for JWT and session
 app.config['SECRET_KEY'] = 'b9c8d5a73944b7f924b5296acdf4cddc35e3475f0a1a32a0c451aee71d6c49b2'
 
-# Flask-Mail configuration (update with your credentials)
+# Flask-Mail configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -45,12 +41,11 @@ app.config['MAIL_PASSWORD'] = 'Rahul@830'
 app.config['MAIL_DEFAULT_SENDER'] = ('Your Name', 'your-email@gmail.com')
 mail = Mail(app)
 
-# reCAPTCHA configuration (replace with your keys)
+# reCAPTCHA configuration
 app.config['RECAPTCHA_SITE_KEY'] = '6Lfc3dIqAAAAAJ_JoVxkkHGu-rE7CrgnXFwIFBsd'
 app.config['RECAPTCHA_SECRET_KEY'] = '6Lfc3dIqAAAAAMJEj9-LrGfzPznsk_DfWiTi-K2n'
 
 # ================= MongoDB Setup =================
-
 try:
     client = MongoClient("mongodb+srv://sainirahul1009:z7TJMAdiqfAiHGRD@cluster0.3bmxr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
     db = client['social_dashboard']
@@ -59,7 +54,6 @@ except Exception as e:
     print(f"Error connecting to MongoDB: {e}")
 
 # ================= Google Business Profile Client (Optional) =================
-
 bp_service = None
 if os.path.exists(SERVICE_ACCOUNT_KEY_PATH) and GBP_ACCOUNT_ID:
     bp_scopes = ['https://www.googleapis.com/auth/business.manage']
@@ -70,7 +64,6 @@ if os.path.exists(SERVICE_ACCOUNT_KEY_PATH) and GBP_ACCOUNT_ID:
         print(f"Error creating Google Business Profile client: {e}")
 
 # ================= Helper Functions =================
-
 def generate_jwt_token(user_id):
     payload = {
         'user_id': str(user_id),
@@ -79,7 +72,6 @@ def generate_jwt_token(user_id):
     token = jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
     return token
 
-# token_required decorator (checks headers and session)
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -100,7 +92,6 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
     return decorated
 
-# admin_required decorator (ensures user has admin privileges)
 def admin_required(f):
     @wraps(f)
     def decorated_admin(current_user, *args, **kwargs):
@@ -110,7 +101,6 @@ def admin_required(f):
     return decorated_admin
 
 # ================= Page Routes =================
-
 @app.route('/')
 def home():
     return redirect(url_for('login_page'))
@@ -148,7 +138,6 @@ def settings_page(current_user):
 # ================= End of Page Routes =================
 
 # ================= Authentication Endpoints =================
-
 @app.route('/auth/register', methods=['POST'])
 def register():
     data = request.json
@@ -188,14 +177,10 @@ def login():
         if not recaptcha_response:
             return jsonify({'error': 'Captcha verification failed.'}), 400
         recaptcha_verify_url = "https://www.google.com/recaptcha/api/siteverify"
-        recaptcha_payload = {
-            'secret': app.config['RECAPTCHA_SECRET_KEY'],
-            'response': recaptcha_response
-        }
+        recaptcha_payload = {'secret': app.config['RECAPTCHA_SECRET_KEY'], 'response': recaptcha_response}
         recaptcha_result = requests.post(recaptcha_verify_url, data=recaptcha_payload).json()
         if not recaptcha_result.get("success"):
             return jsonify({'error': 'Captcha verification failed.'}), 400
-
         if not data or not all(key in data for key in ('email', 'password')):
             return jsonify({'error': 'Email and password are required'}), 400
         user = users_collection.find_one({'email': data['email']})
@@ -216,24 +201,15 @@ def login():
 @app.route('/auth/google')
 def auth_google():
     try:
-        flow = Flow.from_client_secrets_file(
-            CLIENT_SECRET_FILE,
-            scopes=SCOPES,
-            redirect_uri=url_for('auth_callback', _external=True)
-        )
+        flow = Flow.from_client_secrets_file(CLIENT_SECRET_FILE, scopes=SCOPES, redirect_uri=url_for('auth_callback', _external=True))
     except FileNotFoundError:
         return "OAuth credentials file not found. Please add oauth2-credentials.json to your project.", 500
-
     authorization_url, _ = flow.authorization_url(prompt='consent')
     return redirect(authorization_url)
 
 @app.route('/auth/callback')
 def auth_callback():
-    flow = Flow.from_client_secrets_file(
-        CLIENT_SECRET_FILE,
-        scopes=SCOPES,
-        redirect_uri=url_for('auth_callback', _external=True)
-    )
+    flow = Flow.from_client_secrets_file(CLIENT_SECRET_FILE, scopes=SCOPES, redirect_uri=url_for('auth_callback', _external=True))
     flow.fetch_token(authorization_response=request.url)
     credentials = flow.credentials
     session['credentials'] = {
@@ -246,7 +222,7 @@ def auth_callback():
     }
     return redirect(url_for('dashboard_page'))
 
-# Updated Analytics endpoint: Return full GA API response for advanced UI
+# Updated Analytics endpoint with pagePath and matchType filters
 @app.route('/analytics', methods=['GET'])
 def fetch_analytics_data():
     if 'credentials' not in session:
@@ -271,9 +247,63 @@ def fetch_analytics_data():
             ],
             'dimensions': [
                 {'name': 'pagePath'},
-                {'name': 'country'}
+                {'name': 'country'},
+                {'name': 'deviceCategory'},
+                {'name': 'eventName'}
             ]
         }
+        dimension_filters = []
+        if request.args.get('country'):
+            country_value = request.args.get('country')
+            dimension_filters.append({
+                "filter": {
+                    "fieldName": "country",
+                    "stringFilter": {
+                        "value": country_value,
+                        "matchType": "CONTAINS"
+                    }
+                }
+            })
+        if request.args.get('device'):
+            device_value = request.args.get('device')
+            dimension_filters.append({
+                "filter": {
+                    "fieldName": "deviceCategory",
+                    "stringFilter": {
+                        "value": device_value,
+                        "matchType": "EXACT"
+                    }
+                }
+            })
+        if request.args.get('event'):
+            event_value = request.args.get('event')
+            dimension_filters.append({
+                "filter": {
+                    "fieldName": "eventName",
+                    "stringFilter": {
+                        "value": event_value,
+                        "matchType": "EXACT"
+                    }
+                }
+            })
+        if request.args.get('pagePath'):
+            pagePath_value = request.args.get('pagePath')
+            match_type = request.args.get('matchType', 'CONTAINS')
+            dimension_filters.append({
+                "filter": {
+                    "fieldName": "pagePath",
+                    "stringFilter": {
+                        "value": pagePath_value,
+                        "matchType": match_type
+                    }
+                }
+            })
+        if dimension_filters:
+            request_body["dimensionFilter"] = {
+                "andGroup": {
+                    "expressions": dimension_filters
+                }
+            }
         response = analytics.properties().runReport(
             property=f'properties/{GA4_PROPERTY_ID}',
             body=request_body,
@@ -396,7 +426,6 @@ def reset_password():
     return jsonify({'message': 'Password updated successfully. Please log in with your new password.'}), 200
 
 # ================= Admin-Only Endpoints =================
-
 @app.route('/auth/invite-user', methods=['POST'])
 @token_required
 @admin_required
@@ -410,14 +439,14 @@ def invite_user(current_user):
     hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
     invite_token = secrets.token_urlsafe(32)
     new_user = {
-        'name': '',  # Optionally update later
+        'name': '',
         'email': email,
         'password': hashed_password,
         'created_at': datetime.now(timezone.utc),
-        'is_verified': False,  # Will be set to True when the user confirms the invite
+        'is_verified': False,
         'invite_token': invite_token,
         'is_admin': False,
-        'created_by': current_user['_id']  # Record which admin created this user
+        'created_by': current_user['_id']
     }
     try:
         result = users_collection.insert_one(new_user)
@@ -496,7 +525,6 @@ def delete_user(current_user, user_id):
         return jsonify({'error': str(e)}), 500
 
 # ================= End of Admin-Only Endpoints =================
-
 @app.route('/protected', methods=['GET'])
 @token_required
 def protected_route(current_user):
