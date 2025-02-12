@@ -40,8 +40,8 @@ app.config['SECRET_KEY'] = 'b9c8d5a73944b7f924b5296acdf4cddc35e3475f0a1a32a0c451
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'sainirahul1009@gmail.com'
-app.config['MAIL_PASSWORD'] = 'Rahul@902'
+app.config['MAIL_USERNAME'] = 'rahul.saini@zentrades.pro'
+app.config['MAIL_PASSWORD'] = 'Rahul@830'
 app.config['MAIL_DEFAULT_SENDER'] = ('Your Name', 'your-email@gmail.com')
 mail = Mail(app)
 
@@ -83,9 +83,7 @@ def generate_jwt_token(user_id):
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = request.headers.get('Authorization')
-        if not token:
-            token = session.get('jwtToken')
+        token = request.headers.get('Authorization') or session.get('jwtToken')
         if not token:
             return jsonify({'error': 'Token is missing'}), 403
         if token.startswith('Bearer '):
@@ -248,6 +246,7 @@ def auth_callback():
     }
     return redirect(url_for('dashboard_page'))
 
+# Updated Analytics endpoint: Return full GA API response for advanced UI
 @app.route('/analytics', methods=['GET'])
 def fetch_analytics_data():
     if 'credentials' not in session:
@@ -255,9 +254,11 @@ def fetch_analytics_data():
     credentials = Credentials(**session['credentials'])
     analytics = build('analyticsdata', 'v1beta', credentials=credentials)
     try:
-        # Request an advanced set of metrics
         request_body = {
-            'dateRanges': [{'startDate': '30daysAgo', 'endDate': 'today'}],
+            'dateRanges': [{
+                'startDate': request.args.get('startDate', '30daysAgo'),
+                'endDate': request.args.get('endDate', 'today')
+            }],
             'metrics': [
                 {'name': 'activeUsers'},
                 {'name': 'sessions'},
@@ -268,25 +269,16 @@ def fetch_analytics_data():
                 {'name': 'newUsers'},
                 {'name': 'totalRevenue'}
             ],
+            'dimensions': [
+                {'name': 'pagePath'},
+                {'name': 'country'}
+            ]
         }
         response = analytics.properties().runReport(
             property=f'properties/{GA4_PROPERTY_ID}',
             body=request_body,
         ).execute()
-        if not response.get('rows'):
-            return jsonify({'error': 'No data returned from GA API'}), 400
-        metric_values = response['rows'][0]['metricValues']
-        data = {
-            'activeUsers': metric_values[0]['value'],
-            'sessions': metric_values[1]['value'],
-            'screenPageViews': metric_values[2]['value'],
-            'engagedSessions': metric_values[3]['value'],
-            'engagementRate': metric_values[4]['value'],
-            'averageSessionDuration': metric_values[5]['value'],
-            'newUsers': metric_values[6]['value'],
-            'totalRevenue': metric_values[7]['value']
-        }
-        return jsonify(data)
+        return jsonify(response)
     except Exception as e:
         print(f"Error fetching Google Analytics data: {str(e)}")
         return jsonify({'error': str(e)}), 500
