@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,75 +22,188 @@
       background-color: #f1f4f8;
       font-family: 'Arial', sans-serif;
     }
+
     .dashboard-container {
       display: flex;
       min-height: 100vh;
     }
-    /* Sidebar */
+
+    /* -------------------------------------
+       SIDEBAR: Dark Green + White Icons/Text
+       ------------------------------------- */
     .sidebar {
-      width: 250px;
-      background-color: #343a40;
-      color: #fff;
+      width: 350px;
+      background-color: #0b1a02;
+      /* Dark green */
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
       padding: 20px;
+      height: 100vh;
+      /* Makes the sidebar as tall as the viewport */
+      position: sticky;
+      /* Enables sticky positioning */
+      top: 0;
     }
-    #sidebar-header {
+
+    /* Logo at the top */
+    .sidebar .logo {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 1rem;
     }
-    #sidebar-header img {
-      width: 150px;
-      height: 30px;
+
+    .sidebar .logo img {
+      width: 120px;
+      height: auto;
     }
-    .sidebar a {
-      display: block;
-      padding: 10px 15px;
-      color: #adb5bd;
-      text-decoration: none;
-      border-radius: 5px;
+
+    /* User Profile Card */
+    .user-profile {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding: 10px;
+      color: #000;
+      background-color: #bfe9fb;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      /* subtle divider */
+      border-radius: 8px;
+    }
+
+    .user-profile .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 10px;
+      border: 2px solid #ffffff;
+    }
+
+    .user-profile .user-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .user-profile .user-info .name {
+      font-weight: 600;
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    /* Menu List */
+    .nav-menu {
+      flex: 1;
+      /* fill remaining space */
+      margin-top: 1rem;
+    }
+
+    .nav-menu ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .nav-menu li {
       margin-bottom: 10px;
-      transition: background-color 0.3s;
-      cursor: pointer;
     }
-    .sidebar a:hover,
-    .sidebar a.active {
-      background-color: #495057;
-      color: #fff;
-    }
-    .btn-action {
-      background-color: #5563DE;
-      border: none;
+
+    .nav-menu li a {
+      display: flex;
+      align-items: center;
+      font-size: large;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 10px;
       border-radius: 5px;
-      padding: 8px 16px;
-      color: #fff;
-      transition: background-color 0.3s;
+      transition: background-color 0.2s ease-in-out, font-weight 0.2s ease-in-out;
     }
-    .btn-action:hover {
-      background-color: #4351b5;
+
+    .nav-menu li a i {
+      margin-right: 10px;
+      font-size: 1rem;
     }
+
+    /* Hover Effect */
+    .nav-menu li a:hover {
+      background-color: #fff;
+      /* slightly lighter green */
+
+      /* bolder text */
+      color: #000;
+      /* remain white */
+    }
+
+    /* Active Item: white bg + black text/icons */
+    .nav-menu li a.active {
+      background-color: #ffffff;
+      color: #000000;
+      font-weight: 600;
+    }
+
+    .nav-menu li a.active i {
+      color: #000000;
+    }
+
+    /* Subtle divider above logout if needed */
+    .sidebar-divider {
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      margin: 1rem 0;
+    }
+
+    /* Logout at the bottom */
+    .logout-section {
+      margin-top: auto;
+      /* push logout to bottom */
+    }
+
+    .logout-section a {
+      display: flex;
+      align-items: center;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 10px;
+      border-radius: 5px;
+      transition: background-color 0.2s ease-in-out, font-weight 0.2s ease-in-out;
+    }
+
+    .logout-section a i {
+      margin-right: 10px;
+    }
+
+    .logout-section a:hover {
+      background-color: #266b44;
+      font-weight: 600;
+    }
+
     /* Main Content */
     .content {
       flex-grow: 1;
       padding: 30px;
       background-color: #fff;
     }
+
     #headerSection {
       text-align: left;
       margin-bottom: 30px;
     }
+
     #headerSection .home-heading {
       display: inline-flex;
       gap: 15px;
       font-size: 2.5rem;
       color: #ee5566;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
     }
+
     #headerSection .home-heading img {
       width: 50px;
       height: 50px;
     }
+
     #additionalSection {
       margin-bottom: 30px;
     }
+
     /* Loader */
     #loader {
       position: fixed;
@@ -98,7 +212,7 @@
       transform: translate(-50%, -50%);
       width: 100%;
       height: 100%;
-      background: rgba(255,255,255,0.9);
+      background: rgba(255, 255, 255, 0.9);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -106,10 +220,17 @@
       z-index: 9999;
       animation: fadeIn 0.5s ease-in-out;
     }
+
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
     }
+
     .loading-text {
       margin-top: 20px;
       font-size: 1.5rem;
@@ -117,50 +238,69 @@
       text-align: center;
       animation: textFade 1.5s ease-in-out infinite;
     }
+
     @keyframes textFade {
-      0% { opacity: 0.2; }
-      50% { opacity: 1; }
-      100% { opacity: 0.2; }
+      0% {
+        opacity: 0.2;
+      }
+
+      50% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0.2;
+      }
     }
+
     /* Charts & Tables */
     .table-card {
       background-color: #f0f7fd;
       padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
       margin-bottom: 20px;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
     }
-    th, td {
+
+    th,
+    td {
       padding: 12px 15px;
       text-align: center;
       border-bottom: 1px solid #ddd;
     }
+
     th {
       background-color: #e9e9e9;
       color: white;
     }
+
     tbody tr:nth-child(even) {
       background-color: #f9f9f9;
     }
+
     tbody tr:hover {
       background-color: #f1f1f1;
     }
+
     .table-controls {
       display: flex;
       justify-content: center;
       margin-top: 10px;
       gap: 10px;
     }
+
     .pagination {
       display: flex;
       justify-content: center;
       margin-top: 20px;
     }
+
     .pagination-btn {
       background-color: #696969;
       color: white;
@@ -171,55 +311,66 @@
       cursor: pointer;
       transition: background-color 0.3s;
     }
+
     .pagination-btn:disabled {
       background-color: #ccc;
       cursor: not-allowed;
     }
+
     .pagination-btn:hover:not(:disabled) {
       background-color: #555;
     }
+
     #charts-section {
       margin-bottom: 30px;
       display: none;
     }
+
     .card-section {
       display: flex;
       justify-content: space-between;
       gap: 20px;
     }
+
     .card.chart-card,
     .card.map-card {
       width: 32%;
       height: 400px;
       border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       padding: 20px;
       background-color: #f9f6fc;
     }
+
     canvas {
       width: 100% !important;
       height: 100% !important;
     }
+
     .filter-icons {
       display: flex;
       justify-content: flex-end;
       gap: 15px;
       margin-bottom: 10px;
     }
+
     .filter-icons i {
       font-size: 1.5rem;
       cursor: pointer;
       color: #696969;
     }
+
     #activeFiltersLabel {
       margin-bottom: 10px;
       font-style: italic;
       color: #555;
     }
+
     /* Force FullCalendar day numbers to be black */
     .fc .fc-daygrid-day-number {
       color: #000 !important;
     }
+
     /* Mini Calendar Styles (Sidebar) */
     .mini-header {
       display: flex;
@@ -228,6 +379,7 @@
       margin-bottom: 5px;
       padding: 0 5px;
     }
+
     .mini-header button {
       background: none;
       border: none;
@@ -235,17 +387,21 @@
       font-size: 1.2rem;
       cursor: pointer;
     }
+
     .mini-header .mini-title {
       font-weight: bold;
       color: #000;
     }
+
     /* Classic Event List Style */
     #eventList .list-group {
       margin-top: 10px;
     }
+
     #eventList .list-group-item {
       cursor: pointer;
     }
+
     /* Custom Calendar Header in Calendar Tab */
     #calendarHeader {
       display: flex;
@@ -254,17 +410,20 @@
       margin-bottom: 10px;
       padding: 0 5px;
     }
+
     #calendarHeader #calendarTitle {
       font-size: 1.5rem;
       font-weight: bold;
       color: #000;
     }
+
     #calendarHeader button,
     #calendarHeader select {
       margin-left: 5px;
     }
   </style>
 </head>
+
 <body>
   <!-- Loader -->
   <div id="loader">
@@ -276,24 +435,71 @@
 
   <!-- Main Dashboard Container -->
   <div class="dashboard-container" id="dashboard-container" style="display: none;">
-    <!-- Sidebar Navigation -->
+    <!-- Sidebar Navigation (NEW UI) -->
     <div class="sidebar animate__animated animate__fadeInLeft">
-      <div id="sidebar-header">
+      <!-- Logo -->
+      <div class="logo">
         <img src="/static/images/logo.png" alt="Logo">
       </div>
-      <a href="#" id="nav-home" class="active"><i class="fas fa-home"></i> Home</a>
-      <a href="#" id="nav-integrations"><i class="fas fa-plug"></i> Integrations</a>
-      <a href="#" id="nav-analytics"><i class="fas fa-chart-line"></i> Analytics</a>
-      <a href="#" id="nav-calendar"><i class="fas fa-calendar"></i> Calendar</a>
-      <a href="#"><i class="fas fa-user"></i> Profile</a>
-      <a href="#"><i class="fas fa-cog"></i> Settings</a>
-      <button onclick="logout()" class="btn btn-action w-100 mt-4">Logout</button>
-      <div id="adminSettings" style="display: none;">
-        <button onclick="window.location.href='/settings'" class="btn btn-secondary mt-3">Admin Settings</button>
+      <div class="sidebar-divider"></div>
+
+      <!-- User Profile Card -->
+      <div class="user-profile">
+        <img id="avatar" src="https://api.dicebear.com/6.x/identicon/svg?seed=example" alt="User Avatar" class="avatar">
+        <div class="user-info">
+          <p class="name" id="sidebar-user-name">User</p>
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <div class="nav-menu">
+        <ul>
+          <!-- Dashboard (was Home) -->
+          <li>
+            <a href="#" id="nav-dashboard">
+              <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+          </li>
+          <!-- Integration (was Integrations) -->
+          <li>
+            <a href="#" id="nav-integration">
+              <i class="fas fa-fire"></i> Integration
+            </a>
+          </li>
+          <!-- Analytics (was Analytics, but icon representing "collaborations") -->
+          <li>
+            <!-- Add "active" class if you want this highlighted by default -->
+            <a href="#" id="nav-analytics" class="">
+              <i class="fas fa-handshake"></i> Analytics
+            </a>
+          </li>
+          <!-- Calendar (icon representing a forum/discussions) -->
+          <li>
+            <a href="#" id="nav-calendar">
+              <i class="fas fa-comments"></i> Calendar
+            </a>
+          </li>
+          <!-- Settings (icon representing learning/education) -->
+          <li>
+            <a href="#" id="nav-settings">
+              <i class="fas fa-graduation-cap"></i> Settings
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Optional divider before logout -->
+      <div class="sidebar-divider"></div>
+
+      <!-- Logout at bottom (gear icon as requested) -->
+      <div class="logout-section">
+        <a href="javascript:void(0)" onclick="logout()" id="nav-logout">
+          <i class="fas fa-gear"></i> Logout
+        </a>
       </div>
     </div>
 
-    <!-- Main Content Area -->
+    <!-- Main Content Area (Unchanged) -->
     <div class="content animate__animated animate__fadeIn">
       <!-- Header Section (Home) -->
       <div id="headerSection">
@@ -301,7 +507,7 @@
           <h2>Welcome, <span id="user-name">User</span>!</h2>
         </div>
       </div>
-      <!-- Additional Section: Injected content for Integrations, Analytics, or Calendar -->
+      <!-- Additional Section: Injected content for Integration, Analytics, or Calendar -->
       <div id="additionalSection"></div>
       <!-- Charts Section (for Home/Analytics) -->
       <div id="charts-section">
@@ -352,7 +558,8 @@
   </div>
 
   <!-- Other Filters Modal -->
-  <div class="modal fade" id="otherFilterModal" tabindex="-1" aria-labelledby="otherFilterModalLabel" aria-hidden="true">
+  <div class="modal fade" id="otherFilterModal" tabindex="-1" aria-labelledby="otherFilterModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -441,7 +648,8 @@
   </div>
 
   <!-- Event Detail Modal -->
-  <div class="modal fade" id="eventDetailModal" tabindex="-1" aria-labelledby="eventDetailModalLabel" aria-hidden="true">
+  <div class="modal fade" id="eventDetailModal" tabindex="-1" aria-labelledby="eventDetailModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -463,120 +671,129 @@
     </div>
   </div>
 
-    <!-- JavaScript Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
-  
-    <script>
-      // Global Variables
-      let currentPage = 1,
-          rowsPerPage = 10,
-          tableData = [],
-          filteredData = [],
-          selectedPaths = [],
-          pagePathViewsChart,
-          userEngagementChart,
-          countryMapInstance,
-          currentSection = 'home',
-          activeFilterQuery = "";
-  
-      // Loader Functions
-      function showLoader() { document.getElementById('loader').style.display = 'flex'; }
-      function hideLoader() { document.getElementById('loader').style.display = 'none'; }
-  
-      // Filter Functions
-      function addFilterIcons() {
-        const container = document.getElementById('additionalSection');
-        if (!container) return;
-        container.insertAdjacentHTML('afterbegin', `
+
+  <!-- JavaScript Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+
+  <script>
+    // Global Variables
+    let currentPage = 1,
+      rowsPerPage = 10,
+      tableData = [],
+      filteredData = [],
+      selectedPaths = [],
+      pagePathViewsChart,
+      userEngagementChart,
+      countryMapInstance,
+      currentSection = 'dashboard',
+      activeFilterQuery = "";
+
+    // Loader Functions
+    function showLoader() { document.getElementById('loader').style.display = 'flex'; }
+    function hideLoader() { document.getElementById('loader').style.display = 'none'; }
+
+    // Filter Functions
+    function addFilterIcons() {
+      const container = document.getElementById('additionalSection');
+      if (!container) return;
+      container.insertAdjacentHTML('afterbegin', `
           <div class="d-flex justify-content-end filter-icons">
             <i class="fas fa-calendar-alt" id="dateFilterIcon" title="Date Filter"></i>
             <i class="fas fa-filter" id="otherFilterIcon" title="Other Filters"></i>
           </div>
           <div id="activeFiltersLabel"></div>
         `);
-        document.getElementById('dateFilterIcon').addEventListener('click', () =>
-          new bootstrap.Modal(document.getElementById('dateFilterModal')).show()
-        );
-        document.getElementById('otherFilterIcon').addEventListener('click', () =>
-          new bootstrap.Modal(document.getElementById('otherFilterModal')).show()
-        );
+      document.getElementById('dateFilterIcon').addEventListener('click', () =>
+        new bootstrap.Modal(document.getElementById('dateFilterModal')).show()
+      );
+      document.getElementById('otherFilterIcon').addEventListener('click', () =>
+        new bootstrap.Modal(document.getElementById('otherFilterModal')).show()
+      );
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+      // Generate a random seed string
+      const randomSeed = Math.random().toString(36).substring(2);
+      // Update the avatar image source to the DiceBear endpoint with the random seed
+      document.getElementById('avatar').src = `https://api.dicebear.com/6.x/identicon/svg?seed=${randomSeed}`;
+    });
+
+
+    function applyFilters() {
+      const startDate = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : "",
+        endDate = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : "",
+        customStart = document.getElementById('customStartDate') ? document.getElementById('customStartDate').value : "",
+        customEnd = document.getElementById('customEndDate') ? document.getElementById('customEndDate').value : "",
+        finalStart = customStart || startDate,
+        finalEnd = customEnd || endDate,
+        country = document.getElementById('modalFilterCountry') ? document.getElementById('modalFilterCountry').value : (document.getElementById('filterCountry') ? document.getElementById('filterCountry').value : ""),
+        device = document.getElementById('modalFilterDevice') ? document.getElementById('modalFilterDevice').value : (document.getElementById('filterDevice') ? document.getElementById('filterDevice').value : ""),
+        eventVal = document.getElementById('modalFilterEvent') ? document.getElementById('modalFilterEvent').value : (document.getElementById('filterEvent') ? document.getElementById('filterEvent').value : ""),
+        pagePath = document.getElementById('modalFilterPagePath') ? document.getElementById('modalFilterPagePath').value : (document.getElementById('filterPagePath') ? document.getElementById('filterPagePath').value : ""),
+        matchTypeElem = document.querySelector('input[name="modalMatchType"]:checked') || document.querySelector('input[name="matchType"]:checked'),
+        matchType = matchTypeElem ? matchTypeElem.value : "CONTAINS";
+      let url = '/analytics?';
+      if (finalStart) url += `startDate=${encodeURIComponent(finalStart)}&`;
+      if (finalEnd) url += `endDate=${encodeURIComponent(finalEnd)}&`;
+      if (country) url += `country=${encodeURIComponent(country)}&`;
+      if (device) url += `device=${encodeURIComponent(device)}&`;
+      if (eventVal) url += `event=${encodeURIComponent(eventVal)}&`;
+      if (pagePath) url += `pagePath=${encodeURIComponent(pagePath)}&matchType=${encodeURIComponent(matchType)}&`;
+      url = url.replace(/&$/, '');
+      activeFilterQuery = "";
+      if (finalStart || finalEnd) activeFilterQuery += `Date: ${finalStart} to ${finalEnd} | `;
+      if (country) activeFilterQuery += `Country: ${country} | `;
+      if (device) activeFilterQuery += `Device: ${device} | `;
+      if (eventVal) activeFilterQuery += `Event: ${eventVal} | `;
+      if (pagePath) activeFilterQuery += `Page Path (${matchType}): ${pagePath}`;
+      document.getElementById('activeFiltersLabel').innerText = activeFilterQuery;
+      currentPage = 1;
+      fetchAnalyticsData(url);
+      // Hide modals if open
+      bootstrap.Modal.getInstance(document.getElementById('dateFilterModal'))?.hide();
+      bootstrap.Modal.getInstance(document.getElementById('otherFilterModal'))?.hide();
+    }
+    function applyQuickDateFilter(option) {
+      let startDate = "", endDate = "";
+      const today = new Date();
+      if (option === '30days') {
+        const pastDate = new Date(); pastDate.setDate(today.getDate() - 30);
+        startDate = pastDate.toISOString().split('T')[0];
+        endDate = today.toISOString().split('T')[0];
+      } else if (option === '90days') {
+        const pastDate = new Date(); pastDate.setDate(today.getDate() - 90);
+        startDate = pastDate.toISOString().split('T')[0];
+        endDate = today.toISOString().split('T')[0];
+      } else if (option === 'lastMonth') {
+        const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1),
+          lastDayLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+        startDate = firstDayLastMonth.toISOString().split('T')[0];
+        endDate = lastDayLastMonth.toISOString().split('T')[0];
       }
-      function applyFilters() {
-        const startDate = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : "",
-              endDate = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : "",
-              customStart = document.getElementById('customStartDate') ? document.getElementById('customStartDate').value : "",
-              customEnd = document.getElementById('customEndDate') ? document.getElementById('customEndDate').value : "",
-              finalStart = customStart || startDate,
-              finalEnd = customEnd || endDate,
-              country = document.getElementById('modalFilterCountry') ? document.getElementById('modalFilterCountry').value : (document.getElementById('filterCountry') ? document.getElementById('filterCountry').value : ""),
-              device = document.getElementById('modalFilterDevice') ? document.getElementById('modalFilterDevice').value : (document.getElementById('filterDevice') ? document.getElementById('filterDevice').value : ""),
-              eventVal = document.getElementById('modalFilterEvent') ? document.getElementById('modalFilterEvent').value : (document.getElementById('filterEvent') ? document.getElementById('filterEvent').value : ""),
-              pagePath = document.getElementById('modalFilterPagePath') ? document.getElementById('modalFilterPagePath').value : (document.getElementById('filterPagePath') ? document.getElementById('filterPagePath').value : ""),
-              matchTypeElem = document.querySelector('input[name="modalMatchType"]:checked') || document.querySelector('input[name="matchType"]:checked'),
-              matchType = matchTypeElem ? matchTypeElem.value : "CONTAINS";
-        let url = '/analytics?';
-        if (finalStart) url += `startDate=${encodeURIComponent(finalStart)}&`;
-        if (finalEnd) url += `endDate=${encodeURIComponent(finalEnd)}&`;
-        if (country) url += `country=${encodeURIComponent(country)}&`;
-        if (device) url += `device=${encodeURIComponent(device)}&`;
-        if (eventVal) url += `event=${encodeURIComponent(eventVal)}&`;
-        if (pagePath) url += `pagePath=${encodeURIComponent(pagePath)}&matchType=${encodeURIComponent(matchType)}&`;
-        url = url.replace(/&$/, '');
-        activeFilterQuery = "";
-        if (finalStart || finalEnd) activeFilterQuery += `Date: ${finalStart} to ${finalEnd} | `;
-        if (country) activeFilterQuery += `Country: ${country} | `;
-        if (device) activeFilterQuery += `Device: ${device} | `;
-        if (eventVal) activeFilterQuery += `Event: ${eventVal} | `;
-        if (pagePath) activeFilterQuery += `Page Path (${matchType}): ${pagePath}`;
-        document.getElementById('activeFiltersLabel').innerText = activeFilterQuery;
-        currentPage = 1;
-        fetchAnalyticsData(url);
-        // Hide modals if open
-        bootstrap.Modal.getInstance(document.getElementById('dateFilterModal'))?.hide();
-        bootstrap.Modal.getInstance(document.getElementById('otherFilterModal'))?.hide();
-      }
-      function applyQuickDateFilter(option) {
-        let startDate = "", endDate = "";
-        const today = new Date();
-        if (option === '30days') {
-          const pastDate = new Date(); pastDate.setDate(today.getDate() - 30);
-          startDate = pastDate.toISOString().split('T')[0];
-          endDate = today.toISOString().split('T')[0];
-        } else if (option === '90days') {
-          const pastDate = new Date(); pastDate.setDate(today.getDate() - 90);
-          startDate = pastDate.toISOString().split('T')[0];
-          endDate = today.toISOString().split('T')[0];
-        } else if (option === 'lastMonth') {
-          const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1),
-                lastDayLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-          startDate = firstDayLastMonth.toISOString().split('T')[0];
-          endDate = lastDayLastMonth.toISOString().split('T')[0];
-        }
-        if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = startDate;
-        if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = endDate;
-        if (document.getElementById('customStartDate')) document.getElementById('customStartDate').value = startDate;
-        if (document.getElementById('customEndDate')) document.getElementById('customEndDate').value = endDate;
-      }
-      function applyCustomDateFilter() { applyFilters(); }
-  
-      // Calendar Functions
-      function initCalendar() {
-        const calendarEl = document.getElementById('calendarView');
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-          initialView: 'dayGridMonth',
-          headerToolbar: false,
-          editable: true,
-          selectable: false,
-          events: function(fetchInfo, successCallback, failureCallback) {
-            const token = localStorage.getItem('jwtToken');
-            fetch('/google-calendar/events', {
-              method: 'GET',
-              headers: { 'Authorization': `Bearer ${token}` }
-            })
+      if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = startDate;
+      if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = endDate;
+      if (document.getElementById('customStartDate')) document.getElementById('customStartDate').value = startDate;
+      if (document.getElementById('customEndDate')) document.getElementById('customEndDate').value = endDate;
+    }
+    function applyCustomDateFilter() { applyFilters(); }
+
+    // Calendar Functions
+    function initCalendar() {
+      const calendarEl = document.getElementById('calendarView');
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: false,
+        editable: true,
+        selectable: false,
+        events: function (fetchInfo, successCallback, failureCallback) {
+          const token = localStorage.getItem('jwtToken');
+          fetch('/google-calendar/events', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
             .then(response => response.json())
             .then(data => {
               const events = data.map(event => ({
@@ -589,42 +806,42 @@
               successCallback(events);
             })
             .catch(error => { console.error('Error fetching Calendar events:', error); failureCallback(error); });
-          },
-          eventClick: function(info) { openEventDetailModal(info.event); }
-        });
-        calendar.render();
-        window.myCalendar = calendar;
+        },
+        eventClick: function (info) { openEventDetailModal(info.event); }
+      });
+      calendar.render();
+      window.myCalendar = calendar;
+      updateCalendarHeader();
+    }
+    function updateCalendarHeader() {
+      if (window.myCalendar) {
+        document.getElementById('calendarTitle').innerText = window.myCalendar.view.title;
+      }
+    }
+    function initCalendarHeader() {
+      document.getElementById('prevBtn').addEventListener('click', function () {
+        window.myCalendar.prev();
         updateCalendarHeader();
-      }
-      function updateCalendarHeader() {
-        if (window.myCalendar) {
-          document.getElementById('calendarTitle').innerText = window.myCalendar.view.title;
-        }
-      }
-      function initCalendarHeader() {
-        document.getElementById('prevBtn').addEventListener('click', function() {
-          window.myCalendar.prev();
-          updateCalendarHeader();
-          loadEventList();
-        });
-        document.getElementById('todayBtn').addEventListener('click', function() {
-          window.myCalendar.today();
-          updateCalendarHeader();
-          loadEventList();
-        });
-        document.getElementById('nextBtn').addEventListener('click', function() {
-          window.myCalendar.next();
-          updateCalendarHeader();
-          loadEventList();
-        });
-        document.getElementById('viewSelect').addEventListener('change', function() {
-          window.myCalendar.changeView(this.value);
-          updateCalendarHeader();
-        });
-      }
-      function initMiniCalendar() {
-        const miniContainer = document.getElementById('miniCalendar');
-        miniContainer.innerHTML = `
+        loadEventList();
+      });
+      document.getElementById('todayBtn').addEventListener('click', function () {
+        window.myCalendar.today();
+        updateCalendarHeader();
+        loadEventList();
+      });
+      document.getElementById('nextBtn').addEventListener('click', function () {
+        window.myCalendar.next();
+        updateCalendarHeader();
+        loadEventList();
+      });
+      document.getElementById('viewSelect').addEventListener('change', function () {
+        window.myCalendar.changeView(this.value);
+        updateCalendarHeader();
+      });
+    }
+    function initMiniCalendar() {
+      const miniContainer = document.getElementById('miniCalendar');
+      miniContainer.innerHTML = `
           <div class="mini-header">
             <button id="miniPrevBtn">&lt;</button>
             <div id="miniTitle" class="mini-title"></div>
@@ -632,191 +849,191 @@
           </div>
           <div id="miniCal"></div>
         `;
-        const miniEl = document.getElementById('miniCal');
-        const miniCalendar = new FullCalendar.Calendar(miniEl, {
-          initialView: 'dayGridMonth',
-          headerToolbar: false,
-          height: 400,
-          selectable: true,
-          fixedWeekCount: false,
-          dateClick: function(info) {
-            window.myCalendar.gotoDate(info.date);
-            updateCalendarHeader();
-            loadEventList();
-          }
-        });
-        miniCalendar.render();
-        document.getElementById('miniTitle').innerText = miniCalendar.view.title;
-        document.getElementById('miniPrevBtn').addEventListener('click', function() {
-          miniCalendar.prev();
-          document.getElementById('miniTitle').innerText = miniCalendar.view.title;
-        });
-        document.getElementById('miniNextBtn').addEventListener('click', function() {
-          miniCalendar.next();
-          document.getElementById('miniTitle').innerText = miniCalendar.view.title;
-        });
-      }
-  
-      // Event Handling for Calendar & Events
-      document.getElementById('addEventForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const title = document.getElementById('eventTitle').value.trim(),
-              start = document.getElementById('eventStart').value,
-              end = document.getElementById('eventEnd').value,
-              description = document.getElementById('eventDescription').value.trim();
-        if (!title || !start || !end) {
-          alert("Please fill in all required fields.");
-          return;
-        }
-        const token = localStorage.getItem('jwtToken');
-        const googlePayload = { summary: title, start, end, description, timeZone: 'UTC' },
-              localPayload = { title, start, end, description };
-        try {
-          // Save event in local DB
-          await fetch('/calendar/events', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify(localPayload)
-          });
-          // Save event in Google Calendar
-          const googleResponse = await fetch('/google-calendar/events', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify(googlePayload)
-          });
-          const googleEvent = await googleResponse.json();
-          if (!googleEvent.start) {
-            console.error("Google Event Error:", googleEvent);
-            alert("Error: Event start time is undefined.");
-            return;
-          }
-          window.myCalendar.addEvent({
-            id: googleEvent.id,
-            title: googleEvent.summary,
-            start: googleEvent.start.dateTime || googleEvent.start.date || start,
-            end: googleEvent.end.dateTime || googleEvent.end.date || end,
-            description: googleEvent.description
-          });
-          alert("Event added successfully!");
-          new bootstrap.Modal(document.getElementById('addEventModal')).hide();
-          document.getElementById('addEventForm').reset();
+      const miniEl = document.getElementById('miniCal');
+      const miniCalendar = new FullCalendar.Calendar(miniEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: false,
+        height: 400,
+        selectable: true,
+        fixedWeekCount: false,
+        dateClick: function (info) {
+          window.myCalendar.gotoDate(info.date);
+          updateCalendarHeader();
           loadEventList();
-        } catch (error) {
-          console.error("Error adding event:", error);
-          alert("An error occurred while adding the event.");
         }
       });
-      function openEventDetailModal(event) {
-        document.getElementById('detailTitle').innerText = event.title;
-        document.getElementById('detailStart').innerText = event.start ? event.start.toISOString() : '';
-        document.getElementById('detailEnd').innerText = event.end ? event.end.toISOString() : '';
-        document.getElementById('detailDescription').innerText = event.extendedProps.description || '';
-        const modal = new bootstrap.Modal(document.getElementById('eventDetailModal'));
-        modal.show();
-        // Reset delete button handler
-        const newDeleteBtn = document.getElementById('deleteEventBtn').cloneNode(true);
-        document.getElementById('deleteEventBtn').parentNode.replaceChild(newDeleteBtn, document.getElementById('deleteEventBtn'));
-        newDeleteBtn.addEventListener('click', async function() {
-          if (confirm("Are you sure you want to delete this event?")) {
-            const token = localStorage.getItem('jwtToken');
-            try {
-              await fetch('/google-calendar/events/' + event.id, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-              await fetch('/calendar/events/' + event.id, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-              event.remove();
-              modal.hide();
-              alert("Event deleted successfully!");
-              loadEventList();
-            } catch (error) {
-              console.error("Error deleting event:", error);
-              alert("An error occurred while deleting the event.");
-            }
-          }
+      miniCalendar.render();
+      document.getElementById('miniTitle').innerText = miniCalendar.view.title;
+      document.getElementById('miniPrevBtn').addEventListener('click', function () {
+        miniCalendar.prev();
+        document.getElementById('miniTitle').innerText = miniCalendar.view.title;
+      });
+      document.getElementById('miniNextBtn').addEventListener('click', function () {
+        miniCalendar.next();
+        document.getElementById('miniTitle').innerText = miniCalendar.view.title;
+      });
+    }
+
+    // Event Handling for Calendar & Events
+    document.getElementById('addEventForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const title = document.getElementById('eventTitle').value.trim(),
+        start = document.getElementById('eventStart').value,
+        end = document.getElementById('eventEnd').value,
+        description = document.getElementById('eventDescription').value.trim();
+      if (!title || !start || !end) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+      const token = localStorage.getItem('jwtToken');
+      const googlePayload = { summary: title, start, end, description, timeZone: 'UTC' },
+        localPayload = { title, start, end, description };
+      try {
+        // Save event in local DB
+        await fetch('/calendar/events', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(localPayload)
         });
+        // Save event in Google Calendar
+        const googleResponse = await fetch('/google-calendar/events', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(googlePayload)
+        });
+        const googleEvent = await googleResponse.json();
+        if (!googleEvent.start) {
+          console.error("Google Event Error:", googleEvent);
+          alert("Error: Event start time is undefined.");
+          return;
+        }
+        window.myCalendar.addEvent({
+          id: googleEvent.id,
+          title: googleEvent.summary,
+          start: googleEvent.start.dateTime || googleEvent.start.date || start,
+          end: googleEvent.end.dateTime || googleEvent.end.date || end,
+          description: googleEvent.description
+        });
+        alert("Event added successfully!");
+        new bootstrap.Modal(document.getElementById('addEventModal')).hide();
+        document.getElementById('addEventForm').reset();
+        loadEventList();
+      } catch (error) {
+        console.error("Error adding event:", error);
+        alert("An error occurred while adding the event.");
       }
-      function openEventDetailModalById(eventId) {
-        const event = window.myCalendar.getEventById(eventId);
-        if (event) { openEventDetailModal(event); }
-        else { alert("Event not found."); }
-      }
-      async function loadEventList() {
-        const token = localStorage.getItem('jwtToken');
-        try {
-          const response = await fetch('/google-calendar/events', { method: 'GET', headers: { 'Authorization': `Bearer ${token}` } });
-          const events = await response.json();
-          const eventListDiv = document.getElementById('eventList');
-          if (Array.isArray(events)) {
-            eventListDiv.innerHTML = `<ul class="list-group">` +
-              events.map(event => {
-                const startStr = event.start.dateTime || event.start.date || '';
-                return `<li class="list-group-item" onclick="openEventDetailModalById('${event.id}')">
+    });
+    function openEventDetailModal(event) {
+      document.getElementById('detailTitle').innerText = event.title;
+      document.getElementById('detailStart').innerText = event.start ? event.start.toISOString() : '';
+      document.getElementById('detailEnd').innerText = event.end ? event.end.toISOString() : '';
+      document.getElementById('detailDescription').innerText = event.extendedProps.description || '';
+      const modal = new bootstrap.Modal(document.getElementById('eventDetailModal'));
+      modal.show();
+      // Reset delete button handler
+      const newDeleteBtn = document.getElementById('deleteEventBtn').cloneNode(true);
+      document.getElementById('deleteEventBtn').parentNode.replaceChild(newDeleteBtn, document.getElementById('deleteEventBtn'));
+      newDeleteBtn.addEventListener('click', async function () {
+        if (confirm("Are you sure you want to delete this event?")) {
+          const token = localStorage.getItem('jwtToken');
+          try {
+            await fetch('/google-calendar/events/' + event.id, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            await fetch('/calendar/events/' + event.id, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            event.remove();
+            modal.hide();
+            alert("Event deleted successfully!");
+            loadEventList();
+          } catch (error) {
+            console.error("Error deleting event:", error);
+            alert("An error occurred while deleting the event.");
+          }
+        }
+      });
+    }
+    function openEventDetailModalById(eventId) {
+      const event = window.myCalendar.getEventById(eventId);
+      if (event) { openEventDetailModal(event); }
+      else { alert("Event not found."); }
+    }
+    async function loadEventList() {
+      const token = localStorage.getItem('jwtToken');
+      try {
+        const response = await fetch('/google-calendar/events', { method: 'GET', headers: { 'Authorization': `Bearer ${token}` } });
+        const events = await response.json();
+        const eventListDiv = document.getElementById('eventList');
+        if (Array.isArray(events)) {
+          eventListDiv.innerHTML = `<ul class="list-group">` +
+            events.map(event => {
+              const startStr = event.start.dateTime || event.start.date || '';
+              return `<li class="list-group-item" onclick="openEventDetailModalById('${event.id}')">
                           <strong>${event.summary}</strong><br>
                           <small>${startStr}</small>
                         </li>`;
-              }).join('') +
-              `</ul>`;
-          }
-        } catch (error) { console.error("Error loading event list:", error); }
-      }
-  
-      // Analytics Functions
-      async function fetchAnalyticsData(url = '/analytics') {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) { alert("Not logged in"); window.location.href = '/login'; return; }
-        showLoader();
-        try {
-          const response = await fetch(url, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            if (data && data.rows) {
-              tableData = data.rows;
-              filteredData = data.rows;
-              if (currentSection === 'analytics') { displayTableData(); }
-              updatePagePathViewsChart();
-              updateUserEngagementChart();
-              createCountryMap(data);
-            } else {
-              document.getElementById('activeFiltersLabel').innerHTML = `<p class="text-center text-danger">No data returned from GA API.</p>`;
-            }
-          } else {
-            document.getElementById('activeFiltersLabel').innerHTML = `<p class="text-center text-danger">Not connected to Google Analytics.</p>`;
-          }
-        } catch (error) {
-          console.error('Error fetching analytics data:', error);
-          alert("An error occurred while fetching analytics data.");
-        } finally { hideLoader(); }
-      }
-      function aggregateTableData(rows) {
-        const aggregated = {};
-        rows.forEach(row => {
-          const pagePath = row.dimensionValues[0].value || 'Unknown';
-          if (!aggregated[pagePath]) {
-            aggregated[pagePath] = JSON.parse(JSON.stringify(row));
-          } else {
-            for (let i = 0; i < row.metricValues.length; i++) {
-              const prevVal = parseFloat(aggregated[pagePath].metricValues[i].value),
-                    currVal = parseFloat(row.metricValues[i].value);
-              aggregated[pagePath].metricValues[i].value = (prevVal + currVal).toString();
-            }
-          }
+            }).join('') +
+            `</ul>`;
+        }
+      } catch (error) { console.error("Error loading event list:", error); }
+    }
+
+    // Analytics Functions
+    async function fetchAnalyticsData(url = '/analytics') {
+      const token = localStorage.getItem('jwtToken');
+      if (!token) { alert("Not logged in"); window.location.href = '/login'; return; }
+      showLoader();
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
         });
-        return Object.values(aggregated);
-      }
-      function displayTableData() {
-        const tableBody = document.querySelector('#data-table tbody');
-        if (!tableBody) return;
-        tableBody.innerHTML = "";
-        const aggregatedData = aggregateTableData(filteredData),
-              start = (currentPage - 1) * rowsPerPage,
-              end = start + rowsPerPage,
-              paginatedData = aggregatedData.slice(start, end);
-        paginatedData.forEach(row => {
-          const path = row.dimensionValues[0].value || 'Unknown',
-                isChecked = selectedPaths.some(selectedRow => selectedRow.dimensionValues[0].value === path);
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.rows) {
+            tableData = data.rows;
+            filteredData = data.rows;
+            if (currentSection === 'analytics') { displayTableData(); }
+            updatePagePathViewsChart();
+            updateUserEngagementChart();
+            createCountryMap(data);
+          } else {
+            document.getElementById('activeFiltersLabel').innerHTML = `<p class="text-center text-danger">No data returned from GA API.</p>`;
+          }
+        } else {
+          document.getElementById('activeFiltersLabel').innerHTML = `<p class="text-center text-danger">Not connected to Google Analytics.</p>`;
+        }
+      } catch (error) {
+        console.error('Error fetching analytics data:', error);
+        alert("An error occurred while fetching analytics data.");
+      } finally { hideLoader(); }
+    }
+    function aggregateTableData(rows) {
+      const aggregated = {};
+      rows.forEach(row => {
+        const pagePath = row.dimensionValues[0].value || 'Unknown';
+        if (!aggregated[pagePath]) {
+          aggregated[pagePath] = JSON.parse(JSON.stringify(row));
+        } else {
+          for (let i = 0; i < row.metricValues.length; i++) {
+            const prevVal = parseFloat(aggregated[pagePath].metricValues[i].value),
+              currVal = parseFloat(row.metricValues[i].value);
+            aggregated[pagePath].metricValues[i].value = (prevVal + currVal).toString();
+          }
+        }
+      });
+      return Object.values(aggregated);
+    }
+    function displayTableData() {
+      const tableBody = document.querySelector('#data-table tbody');
+      if (!tableBody) return;
+      tableBody.innerHTML = "";
+      const aggregatedData = aggregateTableData(filteredData),
+        start = (currentPage - 1) * rowsPerPage,
+        end = start + rowsPerPage,
+        paginatedData = aggregatedData.slice(start, end);
+      paginatedData.forEach(row => {
+        const path = row.dimensionValues[0].value || 'Unknown',
+          isChecked = selectedPaths.some(selectedRow => selectedRow.dimensionValues[0].value === path);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
             <td><input type="checkbox" ${isChecked ? 'checked' : ''} onchange="togglePathSelection('${path}', this.checked)"></td>
             <td>${path}</td>
             <td>${row.metricValues[2].value}</td>
@@ -828,211 +1045,229 @@
             <td>${row.metricValues[7].value}</td>
             <td>${row.metricValues[1].value}</td>
           `;
-          tableBody.appendChild(tr);
-        });
-        updatePagination();
+        tableBody.appendChild(tr);
+      });
+      updatePagination();
+    }
+    function togglePathSelection(path, isSelected) {
+      const row = filteredData.find(row => row.dimensionValues[0].value === path);
+      if (isSelected) {
+        if (selectedPaths.length < 5) { selectedPaths.push(row); }
+        else { alert("You can only select up to 5 paths."); }
+      } else {
+        selectedPaths = selectedPaths.filter(selectedRow => selectedRow.dimensionValues[0].value !== path);
       }
-      function togglePathSelection(path, isSelected) {
-        const row = filteredData.find(row => row.dimensionValues[0].value === path);
-        if (isSelected) {
-          if (selectedPaths.length < 5) { selectedPaths.push(row); }
-          else { alert("You can only select up to 5 paths."); }
-        } else {
-          selectedPaths = selectedPaths.filter(selectedRow => selectedRow.dimensionValues[0].value !== path);
+      updatePagePathViewsChart();
+      updateUserEngagementChart();
+    }
+    function updatePagination() {
+      const totalPages = Math.ceil(aggregateTableData(filteredData).length / rowsPerPage);
+      document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+      document.getElementById('prevPage').disabled = currentPage === 1;
+      document.getElementById('nextPage').disabled = currentPage === totalPages;
+    }
+    function downloadExcel() {
+      let csvContent = "data:text/csv;charset=utf-8,Page Path,Views,Active Users,Views per Active User,Avg. Engagement Time,Event Count,Total Revenue,Bounce Rate\n";
+      const aggregatedData = aggregateTableData(tableData);
+      aggregatedData.forEach(row => {
+        const csvRow = [
+          row.dimensionValues[0].value || 'Unknown',
+          row.metricValues[2].value,
+          row.metricValues[0].value,
+          row.metricValues[3].value,
+          row.metricValues[5].value,
+          row.metricValues[4].value,
+          row.metricValues[7].value,
+          row.metricValues[1].value
+        ];
+        csvContent += csvRow.join(",") + "\n";
+      });
+      const encodedUri = encodeURI(csvContent),
+        link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "analytics_data.csv");
+      document.body.appendChild(link);
+      link.click();
+    }
+    function shareTable() {
+      const shareLink = `${window.location.href}?share=true`;
+      navigator.clipboard.writeText(shareLink).then(() => {
+        alert("Table share link copied to clipboard!");
+      });
+    }
+    function updatePagePathViewsChart() {
+      const canvas = document.getElementById('pagePathViewsChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d'),
+        displayData = selectedPaths.length > 0 ? selectedPaths : aggregateTableData(filteredData).slice(0, 5),
+        pagePaths = displayData.map(row => row.dimensionValues[0].value || 'Unknown'),
+        views = displayData.map(row => row.metricValues[2].value);
+      if (pagePathViewsChart) { pagePathViewsChart.destroy(); }
+      pagePathViewsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: pagePaths,
+          datasets: [{
+            label: 'Views',
+            data: views,
+            backgroundColor: 'rgba(105, 105, 105, 0.6)',
+            borderColor: 'rgba(105, 105, 105, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+      });
+    }
+    function updateUserEngagementChart() {
+      const canvas = document.getElementById('userEngagementChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d'),
+        displayData = selectedPaths.length > 0 ? selectedPaths : aggregateTableData(filteredData).slice(0, 5),
+        pagePaths = displayData.map(row => row.dimensionValues[0].value || 'Unknown'),
+        engagementTimes = displayData.map(row => row.metricValues[5].value);
+      if (userEngagementChart) { userEngagementChart.destroy(); }
+      userEngagementChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: pagePaths,
+          datasets: [{
+            label: 'Avg. Engagement Time',
+            data: engagementTimes,
+            borderColor: 'rgba(255, 159, 64, 1)',
+            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+            fill: true
+          }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+      });
+    }
+    function createCountryMap(data) {
+      if (countryMapInstance) { countryMapInstance.remove(); }
+      countryMapInstance = L.map('countryMap').setView([20, 0], 2);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(countryMapInstance);
+      data.rows.forEach(row => {
+        const countryName = row.dimensionValues[1].value,
+          views = row.metricValues[2].value,
+          latLng = getCountryCoordinates(countryName);
+        if (latLng) {
+          L.circleMarker(latLng, {
+            radius: Math.sqrt(views) / 2,
+            fillColor: "#696969",
+            color: "#696969",
+            weight: 1,
+            fillOpacity: 0.8
+          }).addTo(countryMapInstance).bindPopup(`${countryName}: ${views} views`);
         }
-        updatePagePathViewsChart();
-        updateUserEngagementChart();
+      });
+    }
+    function getCountryCoordinates(country) {
+      const countryCoordinates = {
+        "United States": [37.0902, -95.7129],
+        "India": [20.5937, 78.9629],
+        "Brazil": [-14.2350, -51.9253]
+      };
+      return countryCoordinates[country] || null;
+    }
+
+    // User Info and Logout
+    async function fetchUserInfo() {
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        alert("You are not logged in. Redirecting to login...");
+        window.location.href = '/login';
+        return;
       }
-      function updatePagination() {
-        const totalPages = Math.ceil(aggregateTableData(filteredData).length / rowsPerPage);
-        document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
-        document.getElementById('prevPage').disabled = currentPage === 1;
-        document.getElementById('nextPage').disabled = currentPage === totalPages;
-      }
-      function downloadExcel() {
-        let csvContent = "data:text/csv;charset=utf-8,Page Path,Views,Active Users,Views per Active User,Avg. Engagement Time,Event Count,Total Revenue,Bounce Rate\n";
-        const aggregatedData = aggregateTableData(tableData);
-        aggregatedData.forEach(row => {
-          const csvRow = [
-            row.dimensionValues[0].value || 'Unknown',
-            row.metricValues[2].value,
-            row.metricValues[0].value,
-            row.metricValues[3].value,
-            row.metricValues[5].value,
-            row.metricValues[4].value,
-            row.metricValues[7].value,
-            row.metricValues[1].value
-          ];
-          csvContent += csvRow.join(",") + "\n";
+      try {
+        const response = await fetch('/api/user/profile', {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
         });
-        const encodedUri = encodeURI(csvContent),
-              link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "analytics_data.csv");
-        document.body.appendChild(link);
-        link.click();
-      }
-      function shareTable() {
-        const shareLink = `${window.location.href}?share=true`;
-        navigator.clipboard.writeText(shareLink).then(() => {
-          alert("Table share link copied to clipboard!");
-        });
-      }
-      function updatePagePathViewsChart() {
-        const canvas = document.getElementById('pagePathViewsChart');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d'),
-              displayData = selectedPaths.length > 0 ? selectedPaths : aggregateTableData(filteredData).slice(0, 5),
-              pagePaths = displayData.map(row => row.dimensionValues[0].value || 'Unknown'),
-              views = displayData.map(row => row.metricValues[2].value);
-        if (pagePathViewsChart) { pagePathViewsChart.destroy(); }
-        pagePathViewsChart = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: pagePaths,
-            datasets: [{
-              label: 'Views',
-              data: views,
-              backgroundColor: 'rgba(105, 105, 105, 0.6)',
-              borderColor: 'rgba(105, 105, 105, 1)',
-              borderWidth: 1
-            }]
-          },
-          options: { responsive: true, scales: { y: { beginAtZero: true } } }
-        });
-      }
-      function updateUserEngagementChart() {
-        const canvas = document.getElementById('userEngagementChart');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d'),
-              displayData = selectedPaths.length > 0 ? selectedPaths : aggregateTableData(filteredData).slice(0, 5),
-              pagePaths = displayData.map(row => row.dimensionValues[0].value || 'Unknown'),
-              engagementTimes = displayData.map(row => row.metricValues[5].value);
-        if (userEngagementChart) { userEngagementChart.destroy(); }
-        userEngagementChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: pagePaths,
-            datasets: [{
-              label: 'Avg. Engagement Time',
-              data: engagementTimes,
-              borderColor: 'rgba(255, 159, 64, 1)',
-              backgroundColor: 'rgba(255, 159, 64, 0.2)',
-              fill: true
-            }]
-          },
-          options: { responsive: true, scales: { y: { beginAtZero: true } } }
-        });
-      }
-      function createCountryMap(data) {
-        if (countryMapInstance) { countryMapInstance.remove(); }
-        countryMapInstance = L.map('countryMap').setView([20, 0], 2);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(countryMapInstance);
-        data.rows.forEach(row => {
-          const countryName = row.dimensionValues[1].value,
-                views = row.metricValues[2].value,
-                latLng = getCountryCoordinates(countryName);
-          if (latLng) {
-            L.circleMarker(latLng, {
-              radius: Math.sqrt(views) / 2,
-              fillColor: "#696969",
-              color: "#696969",
-              weight: 1,
-              fillOpacity: 0.8
-            }).addTo(countryMapInstance).bindPopup(`${countryName}: ${views} views`);
-          }
-        });
-      }
-      function getCountryCoordinates(country) {
-        const countryCoordinates = {
-          "United States": [37.0902, -95.7129],
-          "India": [20.5937, 78.9629],
-          "Brazil": [-14.2350, -51.9253]
-        };
-        return countryCoordinates[country] || null;
-      }
-  
-      // User Info and Logout
-      async function fetchUserInfo() {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) {
-          alert("You are not logged in. Redirecting to login...");
-          window.location.href = '/login';
-          return;
-        }
-        try {
-          const response = await fetch('/api/user/profile', {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-          });
-          if (response.ok) {
-            const user = await response.json();
-            document.getElementById('user-name').innerText = user.name;
-            if (user.is_admin) {
-              document.getElementById('adminSettings').style.display = 'block';
+        if (response.ok) {
+          const user = await response.json();
+          // Update both header and sidebar with the user's name
+          document.getElementById('user-name').innerText = user.name;
+          document.getElementById('sidebar-user-name').innerText = user.name;
+
+          if (user.is_admin) {
+            const adminSettingsElem = document.getElementById('adminSettings');
+            if (adminSettingsElem) {
+              adminSettingsElem.style.display = 'block';
             }
-            hideLoader();
-            document.getElementById('dashboard-container').style.display = 'flex';
-          } else {
-            alert("Failed to fetch user info. Please log in again.");
-            window.location.href = '/login';
           }
-        } catch (error) {
-          console.error('Error fetching user info:', error);
-          alert("An error occurred. Redirecting to login.");
+
+          hideLoader();
+          document.getElementById('dashboard-container').style.display = 'flex';
+        } else {
+          alert("Failed to fetch user info. Please log in again.");
           window.location.href = '/login';
         }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+        alert("An error occurred: " + error.message);
+        window.location.href = '/login';
       }
-      function logout() {
-        localStorage.removeItem('jwtToken');
-        alert("Logging out...");
-        window.location.href = "/login";
-      }
-  
-      // Sidebar Navigation
-      document.getElementById('nav-home').addEventListener('click', function(e) {
-        e.preventDefault();
-        setActiveSidebarLink('nav-home');
-        switchSection('home');
-      });
-      document.getElementById('nav-integrations').addEventListener('click', function(e) {
-        e.preventDefault();
-        setActiveSidebarLink('nav-integrations');
-        switchSection('integrations');
-      });
-      document.getElementById('nav-analytics').addEventListener('click', function(e) {
-        e.preventDefault();
-        setActiveSidebarLink('nav-analytics');
-        switchSection('analytics');
-      });
-      document.getElementById('nav-calendar').addEventListener('click', function(e) {
-        e.preventDefault();
-        setActiveSidebarLink('nav-calendar');
-        switchSection('calendar');
-      });
-      function setActiveSidebarLink(linkId) {
-        document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
-        document.getElementById(linkId).classList.add('active');
-      }
-      function connectIntegration(integration) {
-        alert("Connecting to " + integration + " is under construction.");
-      }
-  
-      // Section Switching
-      function switchSection(sectionId) {
-        currentSection = sectionId;
-        document.getElementById('headerSection').style.display = 'none';
-        document.getElementById('additionalSection').innerHTML = '';
-        document.getElementById('charts-section').style.display = 'none';
-  
-        if (sectionId === 'home') {
-          document.getElementById('headerSection').style.display = 'block';
-          document.getElementById('charts-section').style.display = 'block';
-          fetchAnalyticsData();
-        } else if (sectionId === 'integrations') {
-          document.getElementById('additionalSection').innerHTML = `
+
+    }
+
+
+    // Sidebar Navigation
+    document.getElementById('nav-dashboard').addEventListener('click', function (e) {
+      e.preventDefault();
+      setActiveSidebarLink('nav-dashboard');
+      switchSection('dashboard');
+    });
+
+
+    document.getElementById('nav-integration').addEventListener('click', function (e) {
+      e.preventDefault();
+      setActiveSidebarLink('nav-integration');
+      // Map this to your integrations section
+      switchSection('integrations');
+    });
+
+    document.getElementById('nav-analytics').addEventListener('click', function (e) {
+      e.preventDefault();
+      setActiveSidebarLink('nav-analytics');
+      switchSection('analytics');
+    });
+
+    document.getElementById('nav-calendar').addEventListener('click', function (e) {
+      e.preventDefault();
+      setActiveSidebarLink('nav-calendar');
+      switchSection('calendar');
+    });
+
+    // Optional: For Settings, if you want to handle it:
+    document.getElementById('nav-settings').addEventListener('click', function (e) {
+      e.preventDefault();
+      setActiveSidebarLink('nav-settings');
+      switchSection('settings'); // Make sure your switchSection supports a settings section
+    });
+
+    function setActiveSidebarLink(linkId) {
+      document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
+      document.getElementById(linkId).classList.add('active');
+    }
+
+    function connectIntegration(integration) {
+      alert("Connecting to " + integration + " is under construction.");
+    }
+
+    // Section Switching
+    function switchSection(sectionId) {
+      currentSection = sectionId;
+      document.getElementById('headerSection').style.display = 'none';
+      document.getElementById('additionalSection').innerHTML = '';
+      document.getElementById('charts-section').style.display = 'none';
+
+      if (sectionId === 'dashboard') {
+        document.getElementById('headerSection').style.display = 'block';
+        document.getElementById('charts-section').style.display = 'block';
+        fetchAnalyticsData();
+      } else if (sectionId === 'integrations') {
+        document.getElementById('additionalSection').innerHTML = `
             <div class="row">
               <div class="col-md-4 mb-4">
                 <div class="card">
@@ -1056,9 +1291,9 @@
               </div>
             </div>
           `;
-        } else if (sectionId === 'analytics') {
-          addFilterIcons();
-          document.getElementById('additionalSection').insertAdjacentHTML('beforeend', `
+      } else if (sectionId === 'analytics') {
+        addFilterIcons();
+        document.getElementById('additionalSection').insertAdjacentHTML('beforeend', `
             <div class="card table-card mb-4">
               <h3>Detailed User Data</h3>
               <table id="data-table">
@@ -1089,19 +1324,19 @@
               </div>
             </div>
           `);
-          // Attach event listeners for the dynamically added buttons:
-          document.getElementById('downloadExcel').addEventListener('click', downloadExcel);
-          document.getElementById('shareTable').addEventListener('click', shareTable);
-          document.getElementById('prevPage').addEventListener('click', function() {
-            if (currentPage > 1) { currentPage--; displayTableData(); }
-          });
-          document.getElementById('nextPage').addEventListener('click', function() {
-            if (currentPage < Math.ceil(aggregateTableData(filteredData).length / rowsPerPage)) { currentPage++; displayTableData(); }
-          });
-          document.getElementById('charts-section').style.display = 'block';
-          fetchAnalyticsData();
-        } else if (sectionId === 'calendar') {
-          document.getElementById('additionalSection').innerHTML = `
+        // Attach event listeners for the dynamically added buttons:
+        document.getElementById('downloadExcel').addEventListener('click', downloadExcel);
+        document.getElementById('shareTable').addEventListener('click', shareTable);
+        document.getElementById('prevPage').addEventListener('click', function () {
+          if (currentPage > 1) { currentPage--; displayTableData(); }
+        });
+        document.getElementById('nextPage').addEventListener('click', function () {
+          if (currentPage < Math.ceil(aggregateTableData(filteredData).length / rowsPerPage)) { currentPage++; displayTableData(); }
+        });
+        document.getElementById('charts-section').style.display = 'block';
+        fetchAnalyticsData();
+      } else if (sectionId === 'calendar') {
+        document.getElementById('additionalSection').innerHTML = `
             <div class="row">
               <div class="col-md-9">
                 <div id="calendarHeader" class="d-flex justify-content-between align-items-center mb-2">
@@ -1127,24 +1362,27 @@
               </div>
             </div>
           `;
-          initCalendar();
-          initMiniCalendar();
-          initCalendarHeader();
-          document.getElementById('addEventBtn').addEventListener('click', function () {
-            new bootstrap.Modal(document.getElementById('addEventModal')).show();
-          });
-          loadEventList();
-        }
+        initCalendar();
+        initMiniCalendar();
+        initCalendarHeader();
+        document.getElementById('addEventBtn').addEventListener('click', function () {
+          new bootstrap.Modal(document.getElementById('addEventModal')).show();
+        });
+        loadEventList();
       }
-  
-      // Initialize on DOM Load
-      document.addEventListener("DOMContentLoaded", () => {
-        if (!localStorage.getItem('useGoogleCalendar')) {
-          localStorage.setItem('useGoogleCalendar', 'true');
-        }
-        fetchUserInfo();
-        switchSection('home');
-      });
-    </script>
+    }
+
+    // Initialize on DOM Load
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!localStorage.getItem('useGoogleCalendar')) {
+        localStorage.setItem('useGoogleCalendar', 'true');
+      }
+      fetchUserInfo();
+      switchSection('dashboard'); // default set to 'dashboard'
+    });
+
+
+  </script>
 </body>
+
 </html>
