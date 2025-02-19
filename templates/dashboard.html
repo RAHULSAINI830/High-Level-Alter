@@ -265,7 +265,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
+
     }
 
     th,
@@ -284,9 +284,7 @@
       background-color: #f9f9f9;
     }
 
-    tbody tr:hover {
-      background-color: #f1f1f1;
-    }
+
 
     .table-controls {
       display: flex;
@@ -371,6 +369,181 @@
       color: #000 !important;
     }
 
+    /* Increase the height of each day cell */
+    .fc .fc-daygrid-day {
+      height: 150px !important;
+      /* Increase from 120px to 150px */
+      background-color: #fcfbfc;
+      border: 1px solid #eee;
+      box-sizing: border-box;
+      padding: 5px;
+      /* Other styles for day cells */
+    }
+
+
+    /* --- FullCalendar Minimal & Clean Theme --- */
+
+    /* Calendar Container */
+    .fc {
+      width: 100%;
+      height: 90vh;
+      /* Ensure calendar fills the container */
+      background-color: #fff;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      color: #333;
+    }
+
+    /* Day-of-Week Headers */
+    .fc .fc-col-header-cell {
+
+      border-bottom: 1px solid #ddd;
+      /* light gray line */
+      text-transform: uppercase;
+      font-weight: normal;
+      /* Remove bold */
+      padding: 10px;
+      font-size: 0.9rem;
+      background-color: #fff;
+      color: #7f7f7f;
+      /* Set header text color */
+      text-decoration: none;
+      /* Remove underline if present */
+    }
+
+    /* Remove extra padding if needed */
+    .fc .fc-col-header-cell-cushion {
+      padding: 0;
+    }
+
+    /* --- Override Day-of-Week Headers --- */
+    .fc .fc-col-header-cell,
+    .fc .fc-col-header-cell-cushion {
+      text-align: left !important;
+      /* Left-align header text */
+      color: #7f7f7f !important;
+      /* Set text color to #7f7f7f */
+      text-decoration: none !important;
+      /* Remove any underlines */
+      font-weight: normal !important;
+      /* Remove bold styling */
+      padding: 10px;
+      /* Ensure consistent padding */
+    }
+
+    /* Optional: If you need to remove extra margins or padding */
+    .fc-col-header-cell {
+      margin: 0;
+    }
+
+    .fc .fc-col-header,
+    .fc .fc-col-header-cell {
+      background-color: #fff !important;
+      border: 1px solid #eee !important;
+      text-align: left !important;
+      color: #7f7f7f !important;
+      /* Set text color */
+      text-decoration: none !important;
+      font-weight: normal !important;
+      padding: 10px !important;
+    }
+
+    /* Remove the extra right border on header cells to match the grid */
+    .fc .fc-col-header-cell:not(:last-child) {
+      border-right: none !important;
+    }
+
+    /* Optionally, ensure the header row doesn't double-up on borders */
+    .fc-col-header {
+      border-collapse: collapse;
+    }
+
+
+    /* Day Cells (Square Grid) */
+    .fc .fc-daygrid-day {
+      /* light gray grid lines */
+      box-sizing: border-box;
+      position: relative;
+      height: 120px;
+      /* Adjust height to get square cells */
+      padding: 5px;
+      overflow: hidden;
+
+      background-color: #fcfbfc;
+      border: 1px solid #eee;
+
+      /* Data box background color */
+    }
+
+    .fc .fc-col-header,
+    .fc .fc-col-header-cell,
+    .fc .fc-col-header-cell-cushion {
+      background-color: #fcfbfc !important;
+      /* Same background as day cells */
+      padding: 5px !important;
+      /* Reduce padding to match day cells */
+      margin: 0 !important;
+      /* Remove any extra margin */
+      text-align: left;
+      /* Left align the weekday names */
+      color: #7f7f7f !important;
+      /* Set text color */
+      font-weight: normal !important;
+      /* Remove bold text */
+      text-decoration: none !important;
+      /* Remove underlines */
+    }
+
+    .fc .fc-col-header-cell {
+      border-bottom: none !important;
+    }
+
+    /* Optional: Ensure the header row uses collapse for borders */
+    .fc .fc-col-header {
+      border-collapse: collapse !important;
+    }
+
+    /* Date Number in the Top-Left Corner */
+    .fc .fc-daygrid-day-number {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      font-size: 0.8rem;
+      color: #7f7f7f;
+      /* Date number text color */
+      text-decoration: none;
+      /* Remove underline */
+    }
+
+    /* Inner Cell Padding for Events/Content */
+    .fc .fc-daygrid-day-frame {
+      padding: 10px;
+      position: relative;
+    }
+
+    /* Optional: Styling for events (if any) */
+    .fc .fc-daygrid-event {
+
+      color: #fff;
+      padding: 2px 4px;
+      font-size: 0.8rem;
+      border-radius: 3px;
+      margin-bottom: 2px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .fc .fc-daygrid-day {
+        height: 90px;
+        /* Slightly smaller cells on mobile */
+      }
+
+      .fc .fc-col-header-cell {
+        font-size: 0.8rem;
+        padding: 8px;
+      }
+    }
+
+
     /* Mini Calendar Styles (Sidebar) */
     .mini-header {
       display: flex;
@@ -421,6 +594,92 @@
     #calendarHeader select {
       margin-left: 5px;
     }
+
+    /* Task Card Design for Calendar Events */
+    .task-card {
+      display: flex;
+      align-items: center;
+      background-color: #fff;
+      /* White background */
+      border: 1px solid #ccc;
+      /* Default border; will be overridden inline */
+      border-radius: 8px;
+      padding: 6px 10px;
+      margin: 2px 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    /* Calendar container should fill the viewport height */
+
+    /* Task Card Design for Calendar Events */
+    .task-card {
+      display: flex;
+      align-items: center;
+      background-color: #fff;
+      /* White background */
+      border: 1px solid #ccc;
+      /* Default border; will be overridden inline */
+      border-radius: 8px;
+      padding: 6px 10px;
+      margin: 2px 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    .task-card .task-icon {
+      font-size: 1.1rem;
+      margin-right: 8px;
+    }
+
+    .task-card .task-content {
+      flex-grow: 1;
+    }
+
+    .task-card .task-title {
+      font-size: 0.95rem;
+      font-weight: bold;
+      margin: 0;
+      color: #333;
+    }
+
+    .task-card .task-subtitle {
+      font-size: 0.85rem;
+      color: #777;
+      margin: 0;
+    }
+
+    .task-card .task-options {
+      cursor: pointer;
+      font-size: 1rem;
+      color: #999;
+    }
+
+    /* FullCalendar Minimal & Clean Theme Adjustments for Consistency */
+    .fc .fc-daygrid-day {
+      background-color: #fcfbfc;
+      border: 1px solid #eee;
+      box-sizing: border-box;
+      padding: 5px;
+      /* Adjust the height if needed; here, we rely on calendar container height */
+      height: auto;
+    }
+
+    .fc .fc-col-header,
+    .fc .fc-col-header-cell,
+    .fc .fc-col-header-cell-cushion {
+      background-color: #fcfbfc !important;
+      padding: 5px !important;
+      margin: 0 !important;
+      text-align: left;
+      color: #7f7f7f !important;
+      font-weight: normal !important;
+      text-decoration: none !important;
+    }
+
+/* Container for the Mini Calendar */
+
+
   </style>
 </head>
 
@@ -788,6 +1047,34 @@
         headerToolbar: false,
         editable: true,
         selectable: false,
+        eventContent: function (arg) {
+          // Retrieve extended properties from the event
+          const ext = arg.event.extendedProps || {};
+
+          // Determine border and icon colors based on task index
+          // (Assume taskIndex is 1 for the first task, >1 for subsequent tasks)
+          let borderColor = "#cf8897"; // default for first task
+          if (ext.taskIndex && ext.taskIndex > 1) {
+            borderColor = "#92c9b7";
+          }
+
+          // Build the task card HTML using the colors above
+          const html = `
+        <div class="task-card" style="border-color: ${borderColor};">
+          <div class="task-icon" style="color: ${borderColor};">
+            <i class="fas ${ext.icon || 'fa-building'}"></i>
+          </div>
+          <div class="task-content">
+            <p class="task-title">${arg.event.title}</p>
+            ${ext.subtitle ? `<p class="task-subtitle">${ext.subtitle}</p>` : ''}
+          </div>
+          <div class="task-options">
+            <i class="fas fa-ellipsis-v"></i>
+          </div>
+        </div>
+      `;
+          return { html: html };
+        },
         events: function (fetchInfo, successCallback, failureCallback) {
           const token = localStorage.getItem('jwtToken');
           fetch('/google-calendar/events', {
@@ -796,16 +1083,26 @@
           })
             .then(response => response.json())
             .then(data => {
+              // Map your backend tasks to calendar events.
+              // Your backend should include an extendedProps.taskIndex for ordering.
               const events = data.map(event => ({
                 id: event.id,
-                title: event.summary,
+                title: event.summary, // task title
                 start: event.start.dateTime || event.start.date,
                 end: event.end.dateTime || event.end.date,
-                description: event.description
+                extendedProps: {
+                  // Use properties provided by your backend, or default values:
+                  icon: event.extendedProps?.icon || 'fa-building',
+                  subtitle: event.extendedProps?.subtitle || '',
+                  taskIndex: event.extendedProps?.taskIndex || 1  // default as first task
+                }
               }));
               successCallback(events);
             })
-            .catch(error => { console.error('Error fetching Calendar events:', error); failureCallback(error); });
+            .catch(error => {
+              console.error('Error fetching Calendar events:', error);
+              failureCallback(error);
+            });
         },
         eventClick: function (info) { openEventDetailModal(info.event); }
       });
@@ -813,6 +1110,8 @@
       window.myCalendar = calendar;
       updateCalendarHeader();
     }
+
+
     function updateCalendarHeader() {
       if (window.myCalendar) {
         document.getElementById('calendarTitle').innerText = window.myCalendar.view.title;
@@ -840,39 +1139,34 @@
       });
     }
     function initMiniCalendar() {
-      const miniContainer = document.getElementById('miniCalendar');
-      miniContainer.innerHTML = `
-          <div class="mini-header">
-            <button id="miniPrevBtn">&lt;</button>
-            <div id="miniTitle" class="mini-title"></div>
-            <button id="miniNextBtn">&gt;</button>
-          </div>
-          <div id="miniCal"></div>
-        `;
-      const miniEl = document.getElementById('miniCal');
-      const miniCalendar = new FullCalendar.Calendar(miniEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: false,
-        height: 400,
-        selectable: true,
-        fixedWeekCount: false,
-        dateClick: function (info) {
-          window.myCalendar.gotoDate(info.date);
-          updateCalendarHeader();
-          loadEventList();
-        }
-      });
-      miniCalendar.render();
-      document.getElementById('miniTitle').innerText = miniCalendar.view.title;
-      document.getElementById('miniPrevBtn').addEventListener('click', function () {
-        miniCalendar.prev();
-        document.getElementById('miniTitle').innerText = miniCalendar.view.title;
-      });
-      document.getElementById('miniNextBtn').addEventListener('click', function () {
-        miniCalendar.next();
-        document.getElementById('miniTitle').innerText = miniCalendar.view.title;
-      });
+  const miniEl = document.getElementById('miniCalendar');
+  const miniCalendar = new FullCalendar.Calendar(miniEl, {
+    initialView: 'dayGridMonth',
+    headerToolbar: false,
+    height: 250, // Adjust height for a compact view
+    selectable: true,
+    fixedWeekCount: false,
+    dateClick: function (info) {
+      window.myCalendar.gotoDate(info.date);
+      updateCalendarHeader();
+      loadEventList();
     }
+  });
+  miniCalendar.render();
+  document.querySelector('.mini-month').innerText = miniCalendar.view.title;
+  document.getElementById('miniPrev').addEventListener('click', function () {
+    miniCalendar.prev();
+    document.querySelector('.mini-month').innerText = miniCalendar.view.title;
+  });
+  document.getElementById('miniNext').addEventListener('click', function () {
+    miniCalendar.next();
+    document.querySelector('.mini-month').innerText = miniCalendar.view.title;
+  });
+}
+
+
+
+
 
     // Event Handling for Calendar & Events
     document.getElementById('addEventForm').addEventListener('submit', async function (e) {
@@ -1336,40 +1630,35 @@
         document.getElementById('charts-section').style.display = 'block';
         fetchAnalyticsData();
       } else if (sectionId === 'calendar') {
-        document.getElementById('additionalSection').innerHTML = `
-            <div class="row">
-              <div class="col-md-9">
-                <div id="calendarHeader" class="d-flex justify-content-between align-items-center mb-2">
-                  <div id="calendarTitle" style="font-size:1.5rem; font-weight:bold;"></div>
-                  <div>
-                    <button class="btn btn-outline-secondary" id="prevBtn">&lt;</button>
-                    <button class="btn btn-outline-secondary" id="todayBtn">Today</button>
-                    <button class="btn btn-outline-secondary" id="nextBtn">&gt;</button>
-                    <select id="viewSelect" class="form-select d-inline-block" style="width: auto; margin-left: 10px;">
-                      <option value="dayGridMonth">Month</option>
-                      <option value="timeGridWeek">Week</option>
-                      <option value="timeGridDay">Day</option>
-                    </select>
-                    <button class="btn btn-primary" id="addEventBtn" style="margin-left:10px;">+ New</button>
-                  </div>
-                </div>
-                <div id="calendarView" style="margin-bottom:20px;"></div>
-              </div>
-              <div class="col-md-3">
-                <div id="miniCalendar" style="margin-bottom:20px;"></div>
-                <h5>Your Events</h5>
-                <div id="eventList" style="max-height: 600px; overflow-y: auto; border-left: 1px solid #ddd; padding-left: 10px; margin-top:20px;"></div>
-              </div>
+  document.getElementById('additionalSection').innerHTML = `
+      <div class="row">
+        <div class="col-md-12">
+          <div id="calendarHeader" class="d-flex justify-content-between align-items-center mb-2">
+            <div id="calendarTitle" style="font-size:1.5rem; font-weight:bold;"></div>
+            <div>
+              <button class="btn btn-outline-secondary" id="prevBtn">&lt;</button>
+              <button class="btn btn-outline-secondary" id="todayBtn">Today</button>
+              <button class="btn btn-outline-secondary" id="nextBtn">&gt;</button>
+              <select id="viewSelect" class="form-select d-inline-block" style="width: auto; margin-left: 10px;">
+                <option value="dayGridMonth">Month</option>
+                <option value="timeGridWeek">Week</option>
+                <option value="timeGridDay">Day</option>
+              </select>
+              <button class="btn btn-primary" id="addEventBtn" style="margin-left:10px;">+ New</button>
             </div>
-          `;
-        initCalendar();
-        initMiniCalendar();
-        initCalendarHeader();
-        document.getElementById('addEventBtn').addEventListener('click', function () {
-          new bootstrap.Modal(document.getElementById('addEventModal')).show();
-        });
-        loadEventList();
-      }
+          </div>
+          <div id="calendarView" style="margin-bottom:20px;"></div>
+        </div>
+      </div>
+    `;
+  initCalendar();
+  initCalendarHeader();
+  document.getElementById('addEventBtn').addEventListener('click', function () {
+    new bootstrap.Modal(document.getElementById('addEventModal')).show();
+  });
+  loadEventList();
+}
+
     }
 
     // Initialize on DOM Load
