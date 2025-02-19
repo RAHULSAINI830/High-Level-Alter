@@ -19,16 +19,18 @@ import json
 
 # ================= Configuration =================
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+# File for Google Analytics OAuth credentials
 CLIENT_SECRET_FILE = 'credentials.json'
 SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
 GA4_PROPERTY_ID = '376596938'
 
+# Separate file for Google Calendar OAuth credentials
+CALENDAR_CREDENTIALS_FILE = 'calendar_credentials.json'
+GOOGLE_CALENDAR_SCOPES = ['https://www.googleapis.com/auth/calendar']
+
 # Service Account for Google Business Profile (Optional)
 SERVICE_ACCOUNT_KEY_PATH = 'service-account-key.json'
 GBP_ACCOUNT_ID = os.getenv('GBP_ACCOUNT_ID')
-
-# Define scope for Google Calendar integration
-GOOGLE_CALENDAR_SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -199,19 +201,32 @@ def login():
         print(f"Error during login: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
-# Google Analytics OAuth Endpoint
+# ---------------- Google Analytics OAuth Endpoints ----------------
 @app.route('/auth/google')
 def auth_google():
     try:
-        flow = Flow.from_client_secrets_file(CLIENT_SECRET_FILE, scopes=SCOPES, redirect_uri=url_for('auth_callback', _external=True))
+        redirect_uri = url_for('auth_callback', _external=True)
+        print("Generated redirect URI:", redirect_uri)  # Debug print
+        flow = Flow.from_client_secrets_file(CLIENT_SECRET_FILE, scopes=SCOPES, redirect_uri=redirect_uri)
     except FileNotFoundError:
-        return "OAuth credentials file not found. Please add oauth2-credentials.json to your project.", 500
+        return "OAuth credentials file not found. Please add credentials.json to your project.", 500
     authorization_url, _ = flow.authorization_url(prompt='consent')
     return redirect(authorization_url)
 
 @app.route('/auth/callback')
 def auth_callback():
-    flow = Flow.from_client_secrets_file(CLIENT_SECRET_FILE, scopes=SCOPES, redirect_uri=url_for('auth_callback', _external=True))
+    redirect_uri = url_for('auth_callback', _external=True)
+    print("Generated redirect URI in callback:", redirect_uri)
+    
+    # Check for errors in the query string.
+    if 'error' in request.args:
+        error = request.args.get("error")
+        return f"Error returned in callback: {error}"
+    
+    if 'code' not in request.args:
+        return "Missing code parameter in response. This likely means the OAuth flow did not complete successfully."
+    
+    flow = Flow.from_client_secrets_file(CLIENT_SECRET_FILE, scopes=SCOPES, redirect_uri=redirect_uri)
     flow.fetch_token(authorization_response=request.url)
     credentials = flow.credentials
     session['credentials'] = {
@@ -224,7 +239,7 @@ def auth_callback():
     }
     return redirect(url_for('dashboard_page'))
 
-# Updated Analytics endpoint with filters
+# ---------------- Analytics Endpoint with Filters ----------------
 @app.route('/analytics', methods=['GET'])
 def fetch_analytics_data():
     if 'credentials' not in session:
@@ -315,6 +330,7 @@ def fetch_analytics_data():
         print(f"Error fetching Google Analytics data: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+# ---------------- Google Business Profile Endpoint ----------------
 @app.route('/google-business-profile', methods=['GET'])
 def google_business_profile():
     if bp_service is None or not GBP_ACCOUNT_ID:
@@ -328,6 +344,7 @@ def google_business_profile():
         print("Error fetching Google Business Profile data:", e)
         return jsonify({'error': str(e)}), 500
 
+# ---------------- OTP and Password Reset Endpoints ----------------
 @app.route('/auth/verify-otp', methods=['POST'])
 def verify_otp():
     data = request.json
@@ -427,7 +444,7 @@ def reset_password():
     session.pop('pending_reset_email', None)
     return jsonify({'message': 'Password updated successfully. Please log in with your new password.'}), 200
 
-# ================= Admin-Only Endpoints =================
+# ---------------- Admin-Only Endpoints ----------------
 @app.route('/auth/invite-user', methods=['POST'])
 @token_required
 @admin_required
@@ -526,7 +543,7 @@ def delete_user(current_user, user_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ================= Local Calendar Endpoints =================
+# ---------------- Local Calendar Endpoints ----------------
 events_collection = db['events']
 
 @app.route('/calendar/events', methods=['GET'])
@@ -595,17 +612,17 @@ def delete_event(current_user, event_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ================= Google Calendar Integration Endpoints =================
+# ---------------- Google Calendar Integration Endpoints ----------------
 @app.route('/auth/google-calendar')
 def auth_google_calendar():
     try:
         flow = Flow.from_client_secrets_file(
-            CLIENT_SECRET_FILE,
+            CALENDAR_CREDENTIALS_FILE,
             scopes=GOOGLE_CALENDAR_SCOPES,
             redirect_uri=url_for('auth_google_calendar_callback', _external=True)
         )
     except FileNotFoundError:
-        return "OAuth credentials file not found. Please add oauth2-credentials.json to your project.", 500
+        return "OAuth credentials file not found. Please add calendar_credentials.json to your project.", 500
 
     authorization_url, state = flow.authorization_url(prompt='consent', access_type='offline')
     session['google_calendar_state'] = state
@@ -615,7 +632,7 @@ def auth_google_calendar():
 def auth_google_calendar_callback():
     state = session.get('google_calendar_state')
     flow = Flow.from_client_secrets_file(
-        CLIENT_SECRET_FILE,
+        CALENDAR_CREDENTIALS_FILE,
         scopes=GOOGLE_CALENDAR_SCOPES,
         state=state,
         redirect_uri=url_for('auth_google_calendar_callback', _external=True)
@@ -651,9 +668,8 @@ def get_google_calendar_events(current_user):
         events = events_result.get('items', [])
         return jsonify(events), 200
     except Exception as e:
-        print("Error in /google-calendar/events:", e)  # Log the error
+        print("Error in /google-calendar/events:", e)
         return jsonify({'error': str(e)}), 500
-
 
 @app.route('/google-calendar/events', methods=['POST'])
 @token_required
@@ -669,7 +685,7 @@ def create_google_calendar_event(current_user):
         # If dt_str is in the format "YYYY-MM-DDTHH:mm", append seconds and "Z"
         if len(dt_str) == 16:
             return dt_str + ":00Z"
-        return dt_str  # otherwise, assume it's already correctly formatted
+        return dt_str
 
     start_formatted = format_datetime(data['start'])
     end_formatted = format_datetime(data['end'])
@@ -694,7 +710,6 @@ def create_google_calendar_event(current_user):
     except Exception as e:
         print("Error creating Google Calendar event:", e)
         return jsonify({'error': str(e)}), 500
-
 
 @app.route('/google-calendar/events/<event_id>', methods=['PUT'])
 @token_required
@@ -732,7 +747,7 @@ def delete_google_calendar_event(current_user, event_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ================= Other Endpoints =================
+# ---------------- Other Endpoints ----------------
 @app.route('/protected', methods=['GET'])
 @token_required
 def protected_route(current_user):
