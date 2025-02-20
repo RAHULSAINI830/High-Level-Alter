@@ -595,65 +595,77 @@
       margin-left: 5px;
     }
 
-    /* Task Card Design for Calendar Events */
-    .task-card {
-      display: flex;
-      align-items: center;
-      background-color: #fff;
-      /* White background */
-      border: 1px solid #ccc;
-      /* Default border; will be overridden inline */
-      border-radius: 8px;
-      padding: 6px 10px;
-      margin: 2px 0;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-    }
+ 
 
     /* Calendar container should fill the viewport height */
 
     /* Task Card Design for Calendar Events */
-    .task-card {
-      display: flex;
-      align-items: center;
-      background-color: #fff;
-      /* White background */
-      border: 1px solid #ccc;
-      /* Default border; will be overridden inline */
-      border-radius: 8px;
-      padding: 6px 10px;
-      margin: 2px 0;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-    }
+   /* Modern Task Card Design */
+.task-card {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  border: 1px solid #e0e6ed;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 8px 0;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
 
-    .task-card .task-icon {
-      font-size: 1.1rem;
-      margin-right: 8px;
-    }
+.task-card:hover {
+  transform: translateY(-3px);
+  
+}
 
-    .task-card .task-content {
-      flex-grow: 1;
-    }
+/* Icon using an accent color (which can be dynamically set) */
+.task-icon {
+  font-size: 1.5rem;
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-color, #ff6f61);
+}
 
-    .task-card .task-title {
-      font-size: 0.95rem;
-      font-weight: bold;
-      margin: 0;
-      color: #333;
-    }
+/* Content Section */
+.task-content {
+  flex-grow: 1;
+  overflow: hidden;
+}
 
-    .task-card .task-subtitle {
-      font-size: 0.85rem;
-      color: #777;
-      margin: 0;
-    }
+.task-title {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-    .task-card .task-options {
-      cursor: pointer;
-      font-size: 1rem;
-      color: #999;
-    }
+.task-subtitle {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 2px 0 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Options Icon */
+.task-options {
+  font-size: 1.2rem;
+  color: #999;
+  cursor: pointer;
+  margin-left: 16px;
+  transition: color 0.2s ease;
+}
+
+.task-options:hover {
+  color: #555;
+}
 
     /* FullCalendar Minimal & Clean Theme Adjustments for Consistency */
     .fc .fc-daygrid-day {
@@ -677,7 +689,166 @@
       text-decoration: none !important;
     }
 
-/* Container for the Mini Calendar */
+    /* Sidebar Updates: Background Black and Text White */
+
+
+/* Mini Calendar Container - style similar to task card */
+#miniCalendar .fc {
+  background-color: #fff;
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+/* Remove any internal borders and shadows within mini calendar */
+#miniCalendar, 
+#miniCalendar * {
+  border: none !important;
+  box-shadow: none !important;
+}
+#miniCalendar .fc-daygrid-day,
+#miniCalendar .fc-col-header-cell {
+  border: none !important;
+}
+#miniCalendar .fc-daygrid-day {
+  height: 40px !important;
+}
+#miniCalendar {
+  min-height: 200px !important;
+}
+#miniCalendar .fc-daygrid-day-frame {
+  padding: 4px !important;
+}
+#miniCalendar .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+  background-color: #ff9900 !important;
+  color: #fff !important;
+  border-radius: 50% !important;
+  width: 28px !important;
+  height: 28px !important;
+  display: inline-block !important;
+  text-align: center !important;
+  line-height: 28px !important;
+  font-weight: bold !important;
+}
+#miniCalendar .fc-col-header-cell-cushion {
+  border: none !important;
+  padding: 5px !important;
+}
+#miniCalendar .fc-daygrid-day-number {
+  font-size: 0.8rem !important;
+}
+.mini-header {
+  display: flex !important;
+  align-items: center !important;
+}
+.mini-header .mini-month {
+  flex: 1;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Task List Container: Make it scrollable if overflow */
+.task-list-container {
+  margin-top: 15px;
+  padding: 0 10px;
+  max-height: 550px;      /* Set maximum height */
+  overflow-y: auto;       /* Enable vertical scrolling */
+}
+
+/* Enhanced Task List Items */
+.task-list-item {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+.task-list-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+.task-list-item .task-icon {
+  font-size: 1.2rem;
+  margin-right: 10px;
+  color: #4CAF50;
+}
+.task-list-item .task-content {
+  flex: 1;
+  overflow: hidden;
+}
+.task-list-item .task-title {
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.task-list-item .task-subtitle {
+  font-size: 0.85rem;
+  color: #777;
+  margin: 0;
+}
+.task-list-item .task-options {
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: #999;
+  transition: color 0.2s ease;
+}
+.task-list-item .task-options:hover {
+  color: #555;
+}
+/* Card styles for the sidebar */
+.card {
+  border: none;
+  border-radius: 8px;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  padding: 10px 15px;
+}
+
+.card-body {
+  background-color: #fff;
+}
+
+/* Styling for the upcoming events list items */
+#eventList .list-group-item {
+  border: none;
+  padding: 10px;
+  margin-bottom: 5px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+#eventList .list-group-item:hover {
+  background-color: #f1f3f5;
+}
+
+/* Optional: If you want a more card-like appearance for each event */
+.event-item {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.event-item:last-child {
+  border-bottom: none;
+}
+
+/* Adjust the mini calendar container if needed */
+#miniCalendar {
+  min-height: 200px;
+}
 
 
   </style>
@@ -1060,18 +1231,19 @@
 
           // Build the task card HTML using the colors above
           const html = `
-        <div class="task-card" style="border-color: ${borderColor};">
-          <div class="task-icon" style="color: ${borderColor};">
-            <i class="fas ${ext.icon || 'fa-building'}"></i>
-          </div>
-          <div class="task-content">
-            <p class="task-title">${arg.event.title}</p>
-            ${ext.subtitle ? `<p class="task-subtitle">${ext.subtitle}</p>` : ''}
-          </div>
-          <div class="task-options">
-            <i class="fas fa-ellipsis-v"></i>
-          </div>
-        </div>
+        <div class="task-card" style="--accent-color: #ff6f61;">
+  <div class="task-icon">
+    <i class="fas fa-calendar-alt"></i>
+  </div>
+  <div class="task-content">
+    <p class="task-title">Meeting with Team</p>
+    <p class="task-subtitle">Discuss quarterly goals</p>
+  </div>
+  <div class="task-options">
+    <i class="fas fa-ellipsis-h"></i>
+  </div>
+</div>
+
       `;
           return { html: html };
         },
@@ -1138,31 +1310,7 @@
         updateCalendarHeader();
       });
     }
-    function initMiniCalendar() {
-  const miniEl = document.getElementById('miniCalendar');
-  const miniCalendar = new FullCalendar.Calendar(miniEl, {
-    initialView: 'dayGridMonth',
-    headerToolbar: false,
-    height: 250, // Adjust height for a compact view
-    selectable: true,
-    fixedWeekCount: false,
-    dateClick: function (info) {
-      window.myCalendar.gotoDate(info.date);
-      updateCalendarHeader();
-      loadEventList();
-    }
-  });
-  miniCalendar.render();
-  document.querySelector('.mini-month').innerText = miniCalendar.view.title;
-  document.getElementById('miniPrev').addEventListener('click', function () {
-    miniCalendar.prev();
-    document.querySelector('.mini-month').innerText = miniCalendar.view.title;
-  });
-  document.getElementById('miniNext').addEventListener('click', function () {
-    miniCalendar.next();
-    document.querySelector('.mini-month').innerText = miniCalendar.view.title;
-  });
-}
+
 
 
 
@@ -1250,24 +1398,46 @@
       else { alert("Event not found."); }
     }
     async function loadEventList() {
-      const token = localStorage.getItem('jwtToken');
-      try {
-        const response = await fetch('/google-calendar/events', { method: 'GET', headers: { 'Authorization': `Bearer ${token}` } });
-        const events = await response.json();
-        const eventListDiv = document.getElementById('eventList');
-        if (Array.isArray(events)) {
-          eventListDiv.innerHTML = `<ul class="list-group">` +
-            events.map(event => {
-              const startStr = event.start.dateTime || event.start.date || '';
-              return `<li class="list-group-item" onclick="openEventDetailModalById('${event.id}')">
-                          <strong>${event.summary}</strong><br>
-                          <small>${startStr}</small>
-                        </li>`;
-            }).join('') +
-            `</ul>`;
-        }
-      } catch (error) { console.error("Error loading event list:", error); }
+  const token = localStorage.getItem('jwtToken');
+  try {
+    const response = await fetch('/google-calendar/events', { 
+      method: 'GET', 
+      headers: { 'Authorization': `Bearer ${token}` } 
+    });
+    const events = await response.json();
+    
+    // Instead of using the main calendar view range, filter upcoming events from now onward
+    const now = new Date();
+    const upcomingEvents = events.filter(event => {
+      let eventDate;
+      if (event.start.dateTime) {
+        eventDate = new Date(event.start.dateTime);
+      } else if (event.start.date) {
+        eventDate = new Date(event.start.date);
+      }
+      return eventDate >= now;
+    });
+
+    const eventListDiv = document.getElementById('eventList');
+    if (Array.isArray(upcomingEvents) && upcomingEvents.length > 0) {
+      eventListDiv.innerHTML = `<ul class="list-group">` +
+        upcomingEvents.map(event => {
+          const startStr = event.start.dateTime || event.start.date || '';
+          return `<li class="list-group-item" onclick="openEventDetailModalById('${event.id}')">
+                      <strong>${event.summary}</strong><br>
+                      <small>${startStr}</small>
+                  </li>`;
+        }).join('') +
+        `</ul>`;
+    } else {
+      eventListDiv.innerHTML = `<p class="text-center text-muted">No upcoming events</p>`;
     }
+  } catch (error) {
+    console.error("Error loading event list:", error);
+  }
+}
+
+
 
     // Analytics Functions
     async function fetchAnalyticsData(url = '/analytics') {
@@ -1630,36 +1800,177 @@
         document.getElementById('charts-section').style.display = 'block';
         fetchAnalyticsData();
       } else if (sectionId === 'calendar') {
-  document.getElementById('additionalSection').innerHTML = `
-      <div class="row">
-        <div class="col-md-12">
-          <div id="calendarHeader" class="d-flex justify-content-between align-items-center mb-2">
-            <div id="calendarTitle" style="font-size:1.5rem; font-weight:bold;"></div>
-            <div>
-              <button class="btn btn-outline-secondary" id="prevBtn">&lt;</button>
-              <button class="btn btn-outline-secondary" id="todayBtn">Today</button>
-              <button class="btn btn-outline-secondary" id="nextBtn">&gt;</button>
-              <select id="viewSelect" class="form-select d-inline-block" style="width: auto; margin-left: 10px;">
-                <option value="dayGridMonth">Month</option>
-                <option value="timeGridWeek">Week</option>
-                <option value="timeGridDay">Day</option>
-              </select>
-              <button class="btn btn-primary" id="addEventBtn" style="margin-left:10px;">+ New</button>
+        document.getElementById('additionalSection').innerHTML = `
+  <!-- Calendar Tab (Revised UI) -->
+<div class="row">
+      <!-- Main Calendar Column -->
+      <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 id="calendarTitle" class="mb-0" style="font-weight:600;"></h2>
+          <div class="d-flex align-items-center">
+            <button class="btn btn-outline-secondary me-1" id="prevBtn">&laquo;</button>
+            <button class="btn btn-outline-secondary me-1" id="todayBtn">Today</button>
+            <button class="btn btn-outline-secondary me-2" id="nextBtn">&raquo;</button>
+            <select id="viewSelect" class="form-select d-inline-block me-2" style="width: auto;">
+              <option value="dayGridMonth">Month</option>
+              <option value="timeGridWeek">Week</option>
+              <option value="timeGridDay">Day</option>
+            </select>
+            <button class="btn btn-primary" id="addEventBtn">+ New Event</button>
+          </div>
+        </div>
+        <div id="calendarView" style="min-height: 500px;"></div>
+      </div>
+  
+      <!-- Sidebar Column -->
+      <div class="col-md-3">
+        <!-- Mini Calendar Card (with updated header) -->
+        <div class="card mb-4 shadow-sm">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            
+            <div class="d-flex align-items-center">
+              <button id="miniPrev" class="btn btn-sm btn-outline-secondary me-1">&laquo;</button>
+              <span class="mini-month" style="min-width: 120px; text-align: center;"></span>
+              <button id="miniNext" class="btn btn-sm btn-outline-secondary ms-1">&raquo;</button>
             </div>
           </div>
-          <div id="calendarView" style="margin-bottom:20px;"></div>
+          <div class="card-body p-2">
+            <div id="miniCalendar"></div>
+          </div>
+        </div>
+  
+        <!-- Upcoming Events Card -->
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <h5 class="mb-0">Upcoming Events</h5>
+          </div>
+          <div class="card-body p-2" id="eventList" style="max-height: 500px; overflow-y: auto;">
+            <!-- Upcoming events will be injected here -->
+          </div>
         </div>
       </div>
+    </div>
+  
+
+
     `;
-  initCalendar();
-  initCalendarHeader();
-  document.getElementById('addEventBtn').addEventListener('click', function () {
-    new bootstrap.Modal(document.getElementById('addEventModal')).show();
-  });
-  loadEventList();
-}
+        initCalendar();
+        initCalendarHeader();
+        initMiniCalendar();
+        document.getElementById('addEventBtn').addEventListener('click', function () {
+          new bootstrap.Modal(document.getElementById('addEventModal')).show();
+        });
+        loadEventList();
+        renderTaskList();
+      }
 
     }
+    function initMiniCalendar() {
+  const miniEl = document.getElementById('miniCalendar');
+  if (!miniEl) return;
+
+  // Create the mini calendar with desired options
+  const miniCalendar = new FullCalendar.Calendar(miniEl, {
+    initialView: 'dayGridMonth',
+    headerToolbar: false, 
+    dayHeaderFormat: { weekday: 'short' },
+    height: 302,
+    selectable: true,
+    fixedWeekCount: false,
+    dateClick: function (info) {
+      // Jump the main calendar to the selected date and refresh events
+      window.myCalendar.gotoDate(info.date);
+      updateCalendarHeader();
+      loadEventList();
+    }
+  });
+
+  miniCalendar.render();
+
+  // Function to update the mini calendar header (month and year)
+  const updateMiniHeader = () => {
+    const miniMonthElem = document.querySelector('.mini-month');
+    if (miniMonthElem) {
+      miniMonthElem.innerText = miniCalendar.view.title;
+    }
+  };
+
+  // Initial update
+  updateMiniHeader();
+
+  // Attach event listeners for the previous and next buttons
+  document.getElementById('miniPrev').addEventListener('click', function () {
+    miniCalendar.prev();
+    updateMiniHeader();
+    // Optionally refresh the upcoming events if needed:
+    loadEventList();
+  });
+  document.getElementById('miniNext').addEventListener('click', function () {
+    miniCalendar.next();
+    updateMiniHeader();
+    loadEventList();
+  });
+}
+
+
+     
+    // Example function to fetch tasks from Google Calendar
+async function fetchGoogleCalendarTasks() {
+  const token = localStorage.getItem('jwtToken');
+  try {
+    const response = await fetch('/google-calendar/events', {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const events = await response.json();
+    // Map events to a common task object structure:
+    return events.map(event => ({
+      id: event.id,
+      title: event.summary,
+      subtitle: event.start.dateTime || event.start.date || '', // show start time/date
+      source: 'google'
+    }));
+  } catch (error) {
+    console.error("Error fetching Google Calendar tasks:", error);
+    return [];
+  }
+}
+
+// Example manually added tasks array (this might come from another API or local storage)
+const manualTasks = [
+
+];
+
+// Function to merge tasks and render the task list UI
+async function renderTaskList() {
+  // Fetch tasks from Google Calendar
+  const googleTasks = await fetchGoogleCalendarTasks();
+  // Merge with manual tasks (you might also sort them by date or priority)
+  const allTasks = [...googleTasks, ...manualTasks];
+
+  // Get the container element
+  const container = document.querySelector('.task-list-container');
+  if (!container) return;
+  container.innerHTML = ''; // Clear previous content
+
+  // Create HTML for each task
+  allTasks.forEach(task => {
+    const taskItem = document.createElement('div');
+    taskItem.classList.add('task-list-item');
+    taskItem.innerHTML = `
+      <div class="task-icon"><i class="fas ${task.source === 'google' ? 'fa-calendar-alt' : 'fa-check-circle'}"></i></div>
+      <div class="task-content">
+        <p class="task-title">${task.title}</p>
+        <p class="task-subtitle">${task.subtitle}</p>
+      </div>
+      <div class="task-options"><i class="fas fa-ellipsis-h"></i></div>
+    `;
+    container.appendChild(taskItem);
+  });
+}
+
+// Call renderTaskList after mini calendar initialization, or whenever tasks update.
+
 
     // Initialize on DOM Load
     document.addEventListener("DOMContentLoaded", () => {
