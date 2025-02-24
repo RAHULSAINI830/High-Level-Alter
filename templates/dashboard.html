@@ -1981,6 +1981,13 @@ async function renderTaskList() {
       switchSection('dashboard'); // default set to 'dashboard'
     });
 
+    function logout() {
+      // Remove token from local storage (or perform other logout actions)
+      localStorage.removeItem('jwtToken');
+      // Optionally, clear other session data if needed
+      window.location.href = '/login';
+    }
+
 
   </script>
 </body>
