@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Chatbot Widget</title>
+  <style>
+    /* Basic widget styling */
+    #chatbot-widget {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 300px;
+      height: 400px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+    #chatbot-header {
+      background: #0b1a02;
+      color: #fff;
+      padding: 10px;
+      text-align: center;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+    #chatbot-messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+    }
+    #chatbot-input {
+      border-top: 1px solid #ddd;
+      display: flex;
+    }
+    #chatbot-input input {
+      flex: 1;
+      border: none;
+      padding: 10px;
+      border-bottom-left-radius: 8px;
+    }
+    #chatbot-input button {
+      border: none;
+      background: #0b1a02;
+      color: #fff;
+      padding: 10px;
+      border-bottom-right-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="chatbot-widget">
+    <div id="chatbot-header">Chat with Us</div>
+    <div id="chatbot-messages"></div>
+    <div id="chatbot-input">
+      <input type="text" id="userMessage" placeholder="Type your message...">
+      <button id="sendMessage">Send</button>
+    </div>
+  </div>
+  <script>
+    const adminId = "{{ admin_id }}";
+    const messagesDiv = document.getElementById('chatbot-messages');
+    const userMessageInput = document.getElementById('userMessage');
+    document.getElementById('sendMessage').addEventListener('click', sendMessage);
+    userMessageInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    async function sendMessage() {
+      const msg = userMessageInput.value.trim();
+      if (!msg) return;
+      appendMessage("You", msg);
+      userMessageInput.value = '';
+      // Call the chatbot message endpoint
+      const response = await fetch(`/chatbot/${adminId}/message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg })
+      });
+      const data = await response.json();
+      appendMessage("Bot", data.response);
+    }
+
+    function appendMessage(sender, text) {
+      const msgEl = document.createElement('div');
+      msgEl.style.marginBottom = '8px';
+      msgEl.innerHTML = `<strong>${sender}:</strong> ${text}`;
+      messagesDiv.appendChild(msgEl);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+  </script>
+</body>
+</html>

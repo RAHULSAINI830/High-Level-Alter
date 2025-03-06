@@ -23,14 +23,12 @@ CLIENT_SECRET_FILE = 'credentials.json'
 SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
 GA4_PROPERTY_ID = '376596938'
 
-# Service Account for Google Business Profile (Optional)
-SERVICE_ACCOUNT_KEY_PATH = 'service-account-key.json'
-GBP_ACCOUNT_ID = os.getenv('GBP_ACCOUNT_ID')
-
-# Define scope for Google Calendar integration
+CALENDAR_CREDENTIALS_FILE = 'calendar_credentials.json'
 GOOGLE_CALENDAR_SCOPES = ['https://www.googleapis.com/auth/calendar']
 
-# Initialize Flask app
+SERVICE_ACCOUNT_KEY_PATH = 'service-account-key.json'
+GBP_ACCOUNT_ID = os.getenv('2018567491275164845')
+
 app = Flask(__name__)
 CORS(app)
 app.config['SECRET_KEY'] = 'b9c8d5a73944b7f924b5296acdf4cddc35e3475f0a1a32a0c451aee71d6c49b2'
@@ -56,15 +54,17 @@ try:
 except Exception as e:
     print(f"Error connecting to MongoDB: {e}")
 
-# ================= Google Business Profile Client (Optional) =================
+# ================= Google Business Profile Clients =================
 bp_service = None
+bp_performance_service = None
 if os.path.exists(SERVICE_ACCOUNT_KEY_PATH) and GBP_ACCOUNT_ID:
     bp_scopes = ['https://www.googleapis.com/auth/business.manage']
-    bp_credentials = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_KEY_PATH, scopes=bp_scopes)
     try:
+        bp_credentials = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_KEY_PATH, scopes=bp_scopes)
         bp_service = build('mybusinessbusinessinformation', 'v1', credentials=bp_credentials)
+        bp_performance_service = build('businessprofileperformance', 'v1', credentials=bp_credentials)
     except Exception as e:
-        print(f"Error creating Google Business Profile client: {e}")
+        print(f"Error creating Google Business Profile clients: {e}")
 
 # ================= Helper Functions =================
 def generate_jwt_token(user_id):
@@ -103,6 +103,23 @@ def admin_required(f):
         return f(current_user, *args, **kwargs)
     return decorated_admin
 
+# ---------------- Context Processor ----------------
+@app.context_processor
+def inject_current_user():
+    token = session.get('jwtToken')
+    if token:
+        if token.startswith('Bearer '):
+            token = token[7:]
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+            user = users_collection.find_one({'_id': ObjectId(data['user_id'])})
+            if user:
+                user['_id'] = str(user['_id'])
+                return {'current_user': user}
+        except Exception as e:
+            print("Error decoding token:", e)
+    return {'current_user': None}
+
 # ================= Page Routes =================
 @app.route('/')
 def home():
@@ -132,13 +149,22 @@ def reset_password_request_page():
 def reset_password_otp_page():
     return render_template('reset_password_otp.html')
 
+@app.route('/business-profile')
+@token_required
+def business_profile_page(current_user):
+    return render_template('business_profile.html', user=current_user)
+
 @app.route('/settings')
 @token_required
 @admin_required
 def settings_page(current_user):
     return render_template('settings.html')
 
-# ================= Authentication Endpoints =================
+@app.route('/widget/<admin_id>')
+def chatbot_widget(admin_id):
+    return render_template('widget.html', admin_id=admin_id)
+
+# ---------------- Authentication Endpoints ----------------
 @app.route('/auth/register', methods=['POST'])
 def register():
     data = request.json
@@ -157,7 +183,7 @@ def register():
         'is_verified': False,
         'otp': otp,
         'otp_expiry': otp_expiry,
-        'is_admin': False
+        'is_admin': False  # Set to True manually for admin accounts
     }
     try:
         result = users_collection.insert_one(user)
@@ -199,19 +225,28 @@ def login():
         print(f"Error during login: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
-# Google Analytics OAuth Endpoint
+# ---------------- Google Analytics OAuth Endpoints ----------------
 @app.route('/auth/google')
 def auth_google():
     try:
-        flow = Flow.from_client_secrets_file(CLIENT_SECRET_FILE, scopes=SCOPES, redirect_uri=url_for('auth_callback', _external=True))
+        redirect_uri = url_for('auth_callback', _external=True)
+        print("Generated redirect URI:", redirect_uri)
+        flow = Flow.from_client_secrets_file(CLIENT_SECRET_FILE, scopes=SCOPES, redirect_uri=redirect_uri)
     except FileNotFoundError:
-        return "OAuth credentials file not found. Please add oauth2-credentials.json to your project.", 500
+        return "OAuth credentials file not found. Please add credentials.json to your project.", 500
     authorization_url, _ = flow.authorization_url(prompt='consent')
     return redirect(authorization_url)
 
 @app.route('/auth/callback')
 def auth_callback():
-    flow = Flow.from_client_secrets_file(CLIENT_SECRET_FILE, scopes=SCOPES, redirect_uri=url_for('auth_callback', _external=True))
+    redirect_uri = url_for('auth_callback', _external=True)
+    print("Generated redirect URI in callback:", redirect_uri)
+    if 'error' in request.args:
+        error = request.args.get("error")
+        return f"Error returned in callback: {error}"
+    if 'code' not in request.args:
+        return "Missing code parameter in response. This likely means the OAuth flow did not complete successfully."
+    flow = Flow.from_client_secrets_file(CLIENT_SECRET_FILE, scopes=SCOPES, redirect_uri=redirect_uri)
     flow.fetch_token(authorization_response=request.url)
     credentials = flow.credentials
     session['credentials'] = {
@@ -224,7 +259,7 @@ def auth_callback():
     }
     return redirect(url_for('dashboard_page'))
 
-# Updated Analytics endpoint with filters
+# ---------------- Analytics Endpoint with Filters ----------------
 @app.route('/analytics', methods=['GET'])
 def fetch_analytics_data():
     if 'credentials' not in session:
@@ -315,6 +350,7 @@ def fetch_analytics_data():
         print(f"Error fetching Google Analytics data: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+# ---------------- Google Business Profile Endpoints ----------------
 @app.route('/google-business-profile', methods=['GET'])
 def google_business_profile():
     if bp_service is None or not GBP_ACCOUNT_ID:
@@ -328,6 +364,122 @@ def google_business_profile():
         print("Error fetching Google Business Profile data:", e)
         return jsonify({'error': str(e)}), 500
 
+@app.route('/admin/chatbot', methods=['GET', 'POST'])
+@token_required
+@admin_required
+def manage_chatbot(current_user):
+    if request.method == 'GET':
+        chatbot = db.chatbots.find_one({"admin_id": str(current_user['_id'])})
+        if not chatbot:
+            default_qa = [
+                {"question": "What services do you offer?", "answer": "We offer a range of digital marketing services."},
+                {"question": "How can I contact you?", "answer": "You can reach us via our contact page."}
+            ]
+            chatbot = {
+                "admin_id": str(current_user['_id']),
+                "predefined_qa": default_qa,
+                "created_at": datetime.now(timezone.utc)
+            }
+            db.chatbots.insert_one(chatbot)
+        return render_template('chatbot.html', chatbot=chatbot, user=current_user)
+    elif request.method == 'POST':
+        data = request.json
+        updated_qa = data.get("predefined_qa")
+        if updated_qa is None:
+            return jsonify({"error": "No Q&A provided"}), 400
+        db.chatbots.update_one(
+            {"admin_id": str(current_user['_id'])},
+            {"$set": {"predefined_qa": updated_qa}}
+        )
+        return jsonify({"message": "Chatbot data updated successfully."}), 200
+
+@app.route('/chatbot/<admin_id>/message', methods=['POST'])
+def chatbot_message(admin_id):
+    data = request.json
+    user_message = data.get("message", "").strip().lower()
+    if not user_message:
+        return jsonify({"error": "Message required"}), 400
+    chatbot = db.chatbots.find_one({"admin_id": admin_id})
+    if not chatbot:
+        return jsonify({"error": "Chatbot not found"}), 404
+    response = "I'm sorry, I didn't understand that."
+    for qa in chatbot.get("predefined_qa", []):
+        if qa["question"].lower() in user_message or user_message in qa["question"].lower():
+            response = qa["answer"]
+            break
+    return jsonify({"response": response})
+
+@app.route('/business-profile/performance', methods=['GET'])
+def google_business_profile_performance():
+    if bp_performance_service is None or not GBP_ACCOUNT_ID:
+        return jsonify({'error': 'Business Profile Performance integration is not configured.'}), 400
+    try:
+        location_id = request.args.get('location_id')
+        if not location_id:
+            parent = f"accounts/{GBP_ACCOUNT_ID}"
+            locations_response = bp_service.accounts().locations().list(parent=parent).execute()
+            locations = locations_response.get('locations', [])
+            if not locations:
+                return jsonify({'error': 'No locations found for this account.'}), 404
+            location_id = locations[0]['name'].split('/')[-1]
+        six_months_ago = (datetime.now(timezone.utc) - timedelta(days=180)).strftime("%Y-%m-%d")
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        request_body = {
+            "dateRanges": [{"startDate": six_months_ago, "endDate": today}],
+            "metrics": [
+                {"name": "views"},
+                {"name": "clicks"},
+                {"name": "calls"}
+            ]
+        }
+        parent = f"accounts/{GBP_ACCOUNT_ID}/locations/{location_id}"
+        performance_response = bp_performance_service.accounts().locations().fetchReport(parent=parent, body=request_body).execute()
+        return jsonify(performance_response), 200
+    except Exception as e:
+        print("Error fetching Business Profile performance data:", e)
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/send-performance-report', methods=['POST'])
+@token_required
+def send_performance_report(current_user):
+    try:
+        location_id = request.json.get('location_id')
+        if not location_id:
+            parent = f"accounts/{GBP_ACCOUNT_ID}"
+            locations_response = bp_service.accounts().locations().list(parent=parent).execute()
+            locations = locations_response.get('locations', [])
+            if not locations:
+                return jsonify({'error': 'No locations found for this account.'}), 404
+            location_id = locations[0]['name'].split('/')[-1]
+        six_months_ago = (datetime.now(timezone.utc) - timedelta(days=180)).strftime("%Y-%m-%d")
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        performance_request_body = {
+            "dateRanges": [{"startDate": six_months_ago, "endDate": today}],
+            "metrics": [
+                {"name": "views"},
+                {"name": "clicks"},
+                {"name": "calls"}
+            ]
+        }
+        parent = f"accounts/{GBP_ACCOUNT_ID}/locations/{location_id}"
+        performance_response = bp_performance_service.accounts().locations().fetchReport(parent=parent, body=performance_request_body).execute()
+        reviews_response = bp_service.accounts().locations().reviews().list(
+            parent=f'accounts/{GBP_ACCOUNT_ID}/locations/{location_id}'
+        ).execute()
+        reviews = reviews_response.get('reviews', [])
+        email_body = f"Performance Report (Last 6 Months):\n{json.dumps(performance_response, indent=2)}\n\nReviews:\n{json.dumps(reviews, indent=2)}"
+        msg = Message(
+            subject="Your 6-Month Business Profile Report",
+            recipients=[current_user['email']],
+            body=email_body
+        )
+        mail.send(msg)
+        return jsonify({'message': 'Performance report email sent successfully.'}), 200
+    except Exception as e:
+        print("Error sending performance report:", e)
+        return jsonify({'error': str(e)}), 500
+
+# ---------------- OTP and Password Reset Endpoints ----------------
 @app.route('/auth/verify-otp', methods=['POST'])
 def verify_otp():
     data = request.json
@@ -427,7 +579,7 @@ def reset_password():
     session.pop('pending_reset_email', None)
     return jsonify({'message': 'Password updated successfully. Please log in with your new password.'}), 200
 
-# ================= Admin-Only Endpoints =================
+# ---------------- Admin-Only Endpoints ----------------
 @app.route('/auth/invite-user', methods=['POST'])
 @token_required
 @admin_required
@@ -522,11 +674,11 @@ def update_user(current_user, user_id):
 def delete_user(current_user, user_id):
     try:
         users_collection.delete_one({'_id': ObjectId(user_id)})
-        return jsonify({'message': 'User deleted successfully.'}), 200
+        return jsonify({'message': 'User deleted successfully'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ================= Local Calendar Endpoints =================
+# ---------------- Local Calendar Endpoints ----------------
 events_collection = db['events']
 
 @app.route('/calendar/events', methods=['GET'])
@@ -595,18 +747,17 @@ def delete_event(current_user, event_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ================= Google Calendar Integration Endpoints =================
+# ---------------- Google Calendar Integration Endpoints ----------------
 @app.route('/auth/google-calendar')
 def auth_google_calendar():
     try:
         flow = Flow.from_client_secrets_file(
-            CLIENT_SECRET_FILE,
+            CALENDAR_CREDENTIALS_FILE,
             scopes=GOOGLE_CALENDAR_SCOPES,
             redirect_uri=url_for('auth_google_calendar_callback', _external=True)
         )
     except FileNotFoundError:
-        return "OAuth credentials file not found. Please add oauth2-credentials.json to your project.", 500
-
+        return "OAuth credentials file not found. Please add calendar_credentials.json to your project.", 500
     authorization_url, state = flow.authorization_url(prompt='consent', access_type='offline')
     session['google_calendar_state'] = state
     return redirect(authorization_url)
@@ -615,7 +766,7 @@ def auth_google_calendar():
 def auth_google_calendar_callback():
     state = session.get('google_calendar_state')
     flow = Flow.from_client_secrets_file(
-        CLIENT_SECRET_FILE,
+        CALENDAR_CREDENTIALS_FILE,
         scopes=GOOGLE_CALENDAR_SCOPES,
         state=state,
         redirect_uri=url_for('auth_google_calendar_callback', _external=True)
@@ -651,9 +802,8 @@ def get_google_calendar_events(current_user):
         events = events_result.get('items', [])
         return jsonify(events), 200
     except Exception as e:
-        print("Error in /google-calendar/events:", e)  # Log the error
+        print("Error in /google-calendar/events:", e)
         return jsonify({'error': str(e)}), 500
-
 
 @app.route('/google-calendar/events', methods=['POST'])
 @token_required
@@ -666,14 +816,12 @@ def create_google_calendar_event(current_user):
         return jsonify({'error': 'Summary, start, and end times are required.'}), 400
 
     def format_datetime(dt_str):
-        # If dt_str is in the format "YYYY-MM-DDTHH:mm", append seconds and "Z"
         if len(dt_str) == 16:
             return dt_str + ":00Z"
-        return dt_str  # otherwise, assume it's already correctly formatted
+        return dt_str
 
     start_formatted = format_datetime(data['start'])
     end_formatted = format_datetime(data['end'])
-
     credentials = Credentials(**session['google_calendar_credentials'])
     try:
         service = build('calendar', 'v3', credentials=credentials)
@@ -694,7 +842,6 @@ def create_google_calendar_event(current_user):
     except Exception as e:
         print("Error creating Google Calendar event:", e)
         return jsonify({'error': str(e)}), 500
-
 
 @app.route('/google-calendar/events/<event_id>', methods=['PUT'])
 @token_required
@@ -732,7 +879,7 @@ def delete_google_calendar_event(current_user, event_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ================= Other Endpoints =================
+# ---------------- Other Endpoints ----------------
 @app.route('/protected', methods=['GET'])
 @token_required
 def protected_route(current_user):

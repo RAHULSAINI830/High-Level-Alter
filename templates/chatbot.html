@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Chatbot Management - Social Dashboard{% endblock %}
+
+{% block content %}
+<div id="headerSection">
+  <div class="home-heading">
+    <h2>Manage Your Chatbot</h2>
+  </div>
+</div>
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Predefined Q&A</h5>
+    <div id="chatbot-container">
+      <ul id="qa-list" class="list-group">
+        {% for qa in chatbot.predefined_qa %}
+          <li class="list-group-item">
+            <strong>Q:</strong> {{ qa.question }}<br>
+            <strong>A:</strong> {{ qa.answer }}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <hr>
+    <h6>Add New Q&A</h6>
+    <form id="add-qa-form">
+      <div class="mb-3">
+        <label for="newQuestion" class="form-label">Question</label>
+        <input type="text" id="newQuestion" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label for="newAnswer" class="form-label">Answer</label>
+        <input type="text" id="newAnswer" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Add Q&A</button>
+    </form>
+  </div>
+</div>
+<script>
+document.getElementById('add-qa-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const question = document.getElementById('newQuestion').value.trim();
+  const answer = document.getElementById('newAnswer').value.trim();
+  if (!question || !answer) {
+    alert("Both fields are required.");
+    return;
+  }
+  // Get current Q&A from the list
+  let qaList = [];
+  document.querySelectorAll('#qa-list li').forEach(item => {
+    const q = item.querySelector('strong:nth-child(1)').nextSibling.textContent.trim();
+    const a = item.querySelector('strong:nth-child(2)').nextSibling.textContent.trim();
+    qaList.push({question: q, answer: a});
+  });
+  qaList.push({question, answer});
+  
+  const response = await fetch(window.location.href, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ predefined_qa: qaList })
+  });
+  const resData = await response.json();
+  if (response.ok) {
+    alert("Chatbot updated.");
+    location.reload();
+  } else {
+    alert("Error: " + resData.error);
+  }
+});
+</script>
+{% endblock %}

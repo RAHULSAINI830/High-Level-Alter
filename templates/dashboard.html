@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,82 +15,158 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet">
-
   <style>
     /* Global Styles */
     body {
       background-color: #f1f4f8;
       font-family: 'Arial', sans-serif;
+      font-size: 1.05rem;
     }
+
     .dashboard-container {
       display: flex;
       min-height: 100vh;
     }
+
     /* Sidebar */
     .sidebar {
-      width: 250px;
-      background-color: #343a40;
+      width: 350px;
+      background-color: #0b1a02;
       color: #fff;
+      display: flex;
+      flex-direction: column;
       padding: 20px;
+      height: 100vh;
+      position: sticky;
+      top: 0;
     }
-    #sidebar-header {
+
+    .sidebar .logo {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 1rem;
     }
-    #sidebar-header img {
-      width: 150px;
-      height: 30px;
+
+    .sidebar .logo img {
+      width: 210px;
+      height: auto;
     }
-    .sidebar a {
-      display: block;
-      padding: 10px 15px;
-      color: #adb5bd;
-      text-decoration: none;
-      border-radius: 5px;
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding: 10px;
+      color: #000;
+      background-color: #bfe9fb;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+    }
+
+    .user-profile .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 10px;
+      border: 2px solid #fff;
+    }
+
+    .user-profile .user-info .name {
+      font-weight: 600;
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .nav-menu {
+      flex: 1;
+      margin-top: 1rem;
+    }
+
+    .nav-menu ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .nav-menu li {
       margin-bottom: 10px;
-      transition: background-color 0.3s;
-      cursor: pointer;
     }
-    .sidebar a:hover,
-    .sidebar a.active {
-      background-color: #495057;
+
+    .nav-menu li a {
+      display: flex;
+      align-items: center;
+      font-size: 1.1rem;
       color: #fff;
-    }
-    .btn-action {
-      background-color: #5563DE;
-      border: none;
+      text-decoration: none;
+      padding: 10px;
       border-radius: 5px;
-      padding: 8px 16px;
+      transition: background-color 0.2s, font-weight 0.2s;
+    }
+
+    .nav-menu li a i {
+      margin-right: 10px;
+      font-size: 1.1rem;
+    }
+
+    .nav-menu li a:hover {
+      background-color: #fff;
+      color: #000;
+    }
+
+    .nav-menu li a.active {
+      background-color: #fff;
+      color: #000;
+      font-weight: 600;
+    }
+
+    .sidebar-divider {
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      margin: 1rem 0;
+    }
+
+    .logout-section a {
+      display: flex;
+      align-items: center;
       color: #fff;
-      transition: background-color 0.3s;
+      text-decoration: none;
+      padding: 10px;
+      border-radius: 5px;
+      transition: background-color 0.2s, font-weight 0.2s;
     }
-    .btn-action:hover {
-      background-color: #4351b5;
+
+    .logout-section a i {
+      margin-right: 10px;
     }
+
+    .logout-section a:hover {
+      background-color: #266b44;
+      font-weight: 600;
+    }
+
     /* Main Content */
     .content {
       flex-grow: 1;
       padding: 30px;
       background-color: #fff;
     }
+
     #headerSection {
       text-align: left;
       margin-bottom: 30px;
     }
+
     #headerSection .home-heading {
       display: inline-flex;
       gap: 15px;
       font-size: 2.5rem;
       color: #ee5566;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
     }
-    #headerSection .home-heading img {
-      width: 50px;
-      height: 50px;
-    }
+
     #additionalSection {
       margin-bottom: 30px;
     }
+
     /* Loader */
     #loader {
       position: fixed;
@@ -98,7 +175,7 @@
       transform: translate(-50%, -50%);
       width: 100%;
       height: 100%;
-      background: rgba(255,255,255,0.9);
+      background: rgba(255, 255, 255, 0.9);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -106,171 +183,569 @@
       z-index: 9999;
       animation: fadeIn 0.5s ease-in-out;
     }
+
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
     }
+
     .loading-text {
       margin-top: 20px;
-      font-size: 1.5rem;
+      font-size: 1.7rem;
       color: #555;
       text-align: center;
       animation: textFade 1.5s ease-in-out infinite;
     }
+
     @keyframes textFade {
-      0% { opacity: 0.2; }
-      50% { opacity: 1; }
-      100% { opacity: 0.2; }
+      0% {
+        opacity: 0.2;
+      }
+
+      50% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0.2;
+      }
     }
-    /* Charts & Tables */
-    .table-card {
-      background-color: #f0f7fd;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      padding: 12px 15px;
-      text-align: center;
-      border-bottom: 1px solid #ddd;
-    }
-    th {
-      background-color: #e9e9e9;
-      color: white;
-    }
-    tbody tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-    tbody tr:hover {
-      background-color: #f1f1f1;
-    }
-    .table-controls {
-      display: flex;
-      justify-content: center;
-      margin-top: 10px;
-      gap: 10px;
-    }
-    .pagination {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-    }
-    .pagination-btn {
-      background-color: #696969;
-      color: white;
-      padding: 10px 20px;
-      margin: 0 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    .pagination-btn:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-    .pagination-btn:hover:not(:disabled) {
-      background-color: #555;
-    }
-    #charts-section {
-      margin-bottom: 30px;
-      display: none;
-    }
-    .card-section {
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-    }
+
+    /* Analytics Cards & Map – Uniform Card Style */
     .card.chart-card,
-    .card.map-card {
+    .card.map-card,
+    .card.line-chart-card {
       width: 32%;
       height: 400px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       padding: 20px;
-      background-color: #f9f6fc;
+      margin-bottom: 20px;
     }
+
+    .card-header {
+      border-bottom: 1px solid #eaeaea;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-family: 'Arial', sans-serif;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    .filter-options select {
+      border: none;
+      background-color: transparent;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    /* Table UI in Analytics Tab */
+    .table-card {
+      background-color: #fff;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      min-height: 500px;
+      margin-bottom: 20px;
+    }
+
+    #data-table {
+  width: 100%;
+  border-collapse: separate; /* Use separate to allow rounded corners */
+  border-spacing: 0;         /* Remove any spacing between cells */
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;       /* Outer rounded corners */
+  overflow: hidden;      
+  min-height: 900px;    /* Ensure the rounding is visible */
+}
+
+#data-table th,
+#data-table td {
+  padding: 12px 15px;
+  text-align: center;
+  /* Apply only horizontal borders */
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* Make the header row's bottom border a bit thicker */
+#data-table thead th {
+  border-bottom: 2px solid #e0e0e0;
+}
+
+
+
+    #data-table th {
+      background-color: #c1d2e3;
+      font-weight: bold;
+      color: #333;
+    }
+
+    /* Pagination and Action Buttons */
+    .pagination {
+      display: flex;
+      justify-content: right;
+      align-items: center;
+      margin-top: 15px;
+      gap: 10px;
+    }
+
+    .pagination-btn {
+      background-color: #ffffff;
+
+      border: none;
+      border-radius: 5px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    .pagination-btn:disabled {
+      background-color: #ffffff;
+      cursor: not-allowed;
+    }
+
+    .action-buttons {
+      margin-top: 15px;
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+
+    .action-buttons .btn {
+      background-color: #0055b0;
+      color: #fff;
+      border: none;
+      border-radius: 22px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    /* Analytics Table Card Header Filter Icons */
+    .table-card .filter-icons {
+      font-size: 2rem;
+      cursor: pointer;
+      color: #696969;
+    }
+
+    /* Canvas for charts */
     canvas {
       width: 100% !important;
       height: 100% !important;
     }
-    .filter-icons {
-      display: flex;
-      justify-content: flex-end;
-      gap: 15px;
-      margin-bottom: 10px;
-    }
-    .filter-icons i {
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: #696969;
-    }
-    #activeFiltersLabel {
-      margin-bottom: 10px;
-      font-style: italic;
-      color: #555;
-    }
-    /* Force FullCalendar day numbers to be black */
+
+    /* FullCalendar Styles */
     .fc .fc-daygrid-day-number {
       color: #000 !important;
     }
-    /* Mini Calendar Styles (Sidebar) */
-    .mini-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 5px;
-      padding: 0 5px;
+
+    .fc .fc-daygrid-day {
+      height: 150px !important;
+      background-color: #fcfbfc;
+      border: 1px solid #eee;
+      box-sizing: border-box;
+      padding: 5px;
     }
-    .mini-header button {
-      background: none;
-      border: none;
-      color: #696969;
-      font-size: 1.2rem;
-      cursor: pointer;
+
+    .fc .fc-col-header-cell {
+      border-bottom: 1px solid #ddd;
+      text-transform: uppercase;
+      font-weight: normal;
+      padding: 10px;
+      font-size: 1rem;
+      background-color: #fff;
+      color: #7f7f7f;
     }
-    .mini-header .mini-title {
-      font-weight: bold;
+
+    .fc .fc-col-header-cell-cushion {
+      padding: 0;
+    }
+
+    .fc-col-header-cell,
+    .fc-col-header-cell-cushion {
+      text-align: left !important;
+      color: #7f7f7f !important;
+      text-decoration: none !important;
+      font-weight: normal !important;
+      padding: 10px;
+    }
+
+    .fc .fc-daygrid-day-number {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      font-size: 0.9rem;
+      color: #7f7f7f;
+    }
+
+    .fc .fc-daygrid-day-frame {
+      padding: 10px;
+      position: relative;
+    }
+
+    .fc .fc-daygrid-event {
       color: #000;
+      padding: 2px 4px;
+      font-size: 0.9rem;
+      border-radius: 3px;
+      margin-bottom: 2px;
     }
-    /* Classic Event List Style */
+
+    @media (max-width: 768px) {
+      .fc .fc-daygrid-day {
+        height: 90px;
+      }
+
+      .fc .fc-col-header-cell {
+        font-size: 0.9rem;
+        padding: 8px;
+      }
+    }
+
+    /* Mini Calendar Styles */
+    #miniCalendar .fc {
+      background-color: #fff;
+      border: none;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    }
+
+    #miniCalendar,
+    #miniCalendar * {
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    #miniCalendar .fc-daygrid-day,
+    #miniCalendar .fc-col-header-cell {
+      border: none !important;
+    }
+
+    #miniCalendar .fc-daygrid-day {
+      height: 40px !important;
+    }
+
+    #miniCalendar {
+      min-height: 200px !important;
+    }
+
+    #miniCalendar .fc-daygrid-day-frame {
+      padding: 4px !important;
+    }
+
+    #miniCalendar .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+      background-color: #ff9900 !important;
+      color: #fff !important;
+      border-radius: 50% !important;
+      width: 28px !important;
+      height: 28px !important;
+      display: inline-block !important;
+      text-align: center !important;
+      line-height: 28px !important;
+      font-weight: bold !important;
+    }
+
+    #miniCalendar .fc-col-header-cell-cushion {
+      border: none !important;
+      padding: 5px !important;
+    }
+
+    #miniCalendar .fc-daygrid-day-number {
+      font-size: 0.9rem !important;
+    }
+
+    .mini-header {
+      display: flex !important;
+      align-items: center !important;
+    }
+
+    .mini-header .mini-month {
+      flex: 1;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    /* Task Card */
+    .task-card {
+      display: flex;
+      align-items: center;
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin: 4px 0;
+      max-width: 90%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      transition: transform 0.5s, box-shadow 0.5s, max-width 0.5s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .task-card:hover {
+      max-width: 100%;
+      transform: translateY(-8px) scaleX(1.05) scaleY(1.02);
+      z-index: 10;
+      box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .task-card:hover .task-content {
+      white-space: normal;
+      overflow: visible;
+    }
+
+    .task-title {
+      font-weight: bold;
+      margin: 0;
+      font-size: 1rem;
+      color: #333;
+    }
+
+    .task-subtitle {
+      font-size: 0.9rem;
+      margin: 0;
+      color: #777;
+    }
+
+    .task-options {
+      margin-left: auto;
+      font-size: 1rem;
+      color: #999;
+      transition: color 0.2s;
+    }
+
+    .task-options:hover {
+      color: #555;
+    }
+
+    .card {
+      border-radius: 18px;
+    }
+
+    .card-header {
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+      padding: 10px 15px;
+      font-size: 1.1rem;
+    }
+
+    .card-body {
+      background-color: #fff;
+      font-size: 1rem;
+    }
+
     #eventList .list-group {
       margin-top: 10px;
     }
+
     #eventList .list-group-item {
       cursor: pointer;
+      border: none;
+      padding: 10px;
+      margin-bottom: 5px;
+      border-radius: 6px;
+      transition: background-color 0.2s;
+      font-size: 1rem;
     }
-    /* Custom Calendar Header in Calendar Tab */
-    #calendarHeader {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      padding: 0 5px;
+
+    #eventList .list-group-item:hover {
+      background-color: #f1f3f5;
     }
-    #calendarHeader #calendarTitle {
-      font-size: 1.5rem;
+
+    .event-item {
+      padding: 8px 12px;
+      border-bottom: 1px solid #e9ecef;
+      font-size: 1rem;
+    }
+
+    .event-item:last-child {
+      border-bottom: none;
+    }
+
+    #miniCalendar {
+      min-height: 200px;
+    }
+
+    /* Adding Task Modal */
+    #addTaskModal .modal-content {
+      border-radius: 10px;
+      width: 560px !important;
+    }
+
+    #addTaskModal .modal-header {
+      border-bottom: none;
+    }
+
+    #addTaskModal small {
+      color: gray;
+      font-size: 0.9rem;
+    }
+
+    #addTaskModal label {
+      font-size: 0.9rem;
+    }
+
+    #addTaskModal .form-control {
+      background-color: #f5f5f5;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    /* Viewing Task Modal */
+    #viewTaskModal .modal-content {
+      border-radius: 10px;
+    }
+
+    #viewTaskModal .modal-header {
+      border-bottom: none;
+    }
+
+    #viewTaskModal small {
+      color: gray;
+      font-size: 0.9rem;
+    }
+
+    #viewTaskModal h5 {
       font-weight: bold;
-      color: #000;
+      margin: 0;
+      font-size: 1.1rem;
     }
-    #calendarHeader button,
-    #calendarHeader select {
-      margin-left: 5px;
+
+    #viewTaskModal #detailDateRange {
+      margin: 0;
+      color: gray;
+      font-size: 0.9rem;
+    }
+
+    #viewTaskModal .form-control {
+      background-color: #f0f0f0;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    /* Updated Date Filter Modal UI */
+    #dateFilterModal .modal-dialog {
+      max-width: 600px;
+    }
+
+    #dateFilterModal .modal-content {
+      border-radius: 10px;
+    }
+
+    /* Modal Header with small gray title "date filter" */
+    #dateFilterModal .modal-header {
+      border-bottom: none;
+      padding: 1rem;
+    }
+
+    #dateFilterModal .modal-header small {
+      color: gray;
+      font-size: 2rem;
+      margin: 0;
+    }
+
+    /* Select Duration Section */
+    #dateFilterModal .duration-section {
+      margin-bottom: 1rem;
+    }
+
+    #dateFilterModal .duration-section h6 {
+      color: #919191;
+      margin-bottom: 0.5rem;
+      font-size: 1.5rem;
+    }
+
+    #dateFilterModal .duration-section .btn {
+      border-radius: 5px;
+      font-size: 1.3rem;
+      flex: 1;
+      padding-block-start: 10px;
+    }
+
+    /* Active quick button style */
+    #dateFilterModal .duration-section .active-btn {
+      background-color: #0d6efd;
+      color: #fff;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Select Your Custom Date Section */
+    #dateFilterModal .custom-date-section {
+      margin-bottom: 1rem;
+    }
+
+    #dateFilterModal .custom-date-section h6 {
+      color: #919191;
+      margin-bottom: 0.5rem;
+      font-size: 1.5rem;
+    }
+
+    #dateFilterModal .custom-date-section .date-input-group {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 1rem;
+    }
+
+    #dateFilterModal .custom-date-section .date-input-group .calendar-icon {
+      width: 30px;
+      height: 30px;
+      background-color: #e0e0e0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      color: #555;
+    }
+
+    #dateFilterModal .custom-date-section .date-input-group .form-control {
+      background-color: #f5f5f5;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      flex: 1;
+      padding: 0.5rem;
+    }
+
+    /* Modal Footer */
+    #dateFilterModal .modal-footer {
+      border-top: none;
+      justify-content: flex-end;
+      padding: 1rem;
+    }
+
+    #dateFilterModal .modal-footer .btn-primary {
+      border-radius: 13px;
+      padding: 0.75rem 3rem;
+      font-size: 1.2rem;
+    }
+
+    .btn-secondary {
+      border-radius: 13px;
+      padding: 0.75rem 3rem;
+      font-size: 1.2rem;
     }
   </style>
 </head>
+
 <body>
   <!-- Loader -->
   <div id="loader">
     <div class="spinner"></div>
-    <p class="loading-text">
-      Fetching data... <span id="funny-text">"Time is relative, but loading seems eternal!"</span>
+    <p class="loading-text">Fetching data... <span id="funny-text">"Time is relative, but loading seems eternal!"</span>
     </p>
   </div>
 
@@ -278,70 +753,174 @@
   <div class="dashboard-container" id="dashboard-container" style="display: none;">
     <!-- Sidebar Navigation -->
     <div class="sidebar animate__animated animate__fadeInLeft">
-      <div id="sidebar-header">
+      <div class="logo">
         <img src="/static/images/logo.png" alt="Logo">
       </div>
-      <a href="#" id="nav-home" class="active"><i class="fas fa-home"></i> Home</a>
-      <a href="#" id="nav-integrations"><i class="fas fa-plug"></i> Integrations</a>
-      <a href="#" id="nav-analytics"><i class="fas fa-chart-line"></i> Analytics</a>
-      <a href="#" id="nav-calendar"><i class="fas fa-calendar"></i> Calendar</a>
-      <a href="#"><i class="fas fa-user"></i> Profile</a>
-      <a href="#"><i class="fas fa-cog"></i> Settings</a>
-      <button onclick="logout()" class="btn btn-action w-100 mt-4">Logout</button>
-      <div id="adminSettings" style="display: none;">
-        <button onclick="window.location.href='/settings'" class="btn btn-secondary mt-3">Admin Settings</button>
+      <div class="sidebar-divider"></div>
+      <!-- User Profile Card -->
+      <div class="user-profile">
+        <img id="avatar" src="https://api.dicebear.com/6.x/identicon/svg?seed=example" alt="User Avatar" class="avatar">
+        <div class="user-info">
+          <p class="name" id="sidebar-user-name">User</p>
+        </div>
+      </div>
+      <!-- Navigation Menu -->
+      <div class="nav-menu">
+        <ul>
+          <li><a href="#" id="nav-dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+          <li><a href="#" id="nav-integration"><i class="fas fa-fire"></i> Integration</a></li>
+          <li><a href="#" id="nav-analytics"><i class="fas fa-handshake"></i> Analytics</a></li>
+          <li><a href="{{ url_for('business_profile_page') }}" id="nav-business-profile"><i class="fas fa-building"></i>
+              Business Profile</a></li>
+          <li><a href="#" id="nav-calendar"><i class="fas fa-comments"></i> Calendar</a></li>
+          <li><a href="#" id="nav-settings"><i class="fas fa-graduation-cap"></i> Settings</a></li>
+        </ul>
+      </div>
+      <div class="sidebar-divider"></div>
+      <div class="logout-section">
+        <a href="javascript:void(0)" onclick="logout()" id="nav-logout"><i class="fas fa-gear"></i> Logout</a>
       </div>
     </div>
 
     <!-- Main Content Area -->
     <div class="content animate__animated animate__fadeIn">
-      <!-- Header Section (Home) -->
       <div id="headerSection">
         <div class="home-heading">
           <h2>Welcome, <span id="user-name">User</span>!</h2>
         </div>
       </div>
-      <!-- Additional Section: Injected content for Integrations, Analytics, or Calendar -->
       <div id="additionalSection"></div>
-      <!-- Charts Section (for Home/Analytics) -->
+
+      <!-- Charts Section (for Dashboard/Analytics view) -->
       <div id="charts-section">
-        <div class="card-section">
+        <div class="card-section" style="display: flex; gap: 20px; justify-content: space-between;">
+          <!-- 1st Card – Bar Chart UI -->
           <div class="card chart-card">
-            <h3>Page Path vs. Views</h3>
-            <canvas id="pagePathViewsChart"></canvas>
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h4 class="card-title mb-0">Page Path vs. Views</h4>
+              <div class="filter-options">
+                <select id="barChartDateRange" class="form-select form-select-sm">
+                  <option value="30days">Last 30 Days</option>
+                  <option value="90days">Last 90 Days</option>
+                  <option value="lastMonth">Last Month</option>
+                </select>
+              </div>
+            </div>
+            <div class="card-body">
+              <canvas id="pagePathViewsChart"></canvas>
+            </div>
           </div>
+          <!-- 2nd Card – Map UI -->
           <div class="card map-card">
-            <h3>Views by Country</h3>
-            <div id="countryMap" style="height: 300px;"></div>
+            <div class="card-header">
+              <h4 class="card-title mb-0" style="font-weight: bold;">View by country</h4>
+            </div>
+            <div class="card-body p-0">
+              <div id="countryMap" style="height: 300px;"></div>
+            </div>
           </div>
-          <div class="card chart-card">
-            <h3>User Engagement Over Time</h3>
-            <canvas id="userEngagementChart"></canvas>
+          <!-- 3rd Card – Line Chart UI -->
+          <div class="card line-chart-card">
+            <div class="card-header d-flex flex-column">
+              <h4 class="card-title mb-0" style="font-weight: bold;">User Engagement Over Time</h4>
+              <small class="text-muted">Statistics of user engagement measured over time</small>
+            </div>
+            <div class="card-body">
+              <canvas id="userEngagementChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics Data Table Section -->
+      <div id="analyticsTableSection">
+        <div class="card table-card mb-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <h3>Detailed User Data</h3>
+            <div class="filter-icons">
+              <i class="fas fa-calendar-alt" id="dateFilterIcon" title="Date Filter"></i>
+              <i class="fas fa-filter" id="otherFilterIcon" title="Other Filters"></i>
+            </div>
+          </div>
+          <table id="data-table">
+            <thead>
+              <tr>
+                <th><input type="checkbox" onclick="toggleSelectAll(this)"></th>
+                <th>Page Path</th>
+                <th>Views</th>
+                <th>Active Users</th>
+                <th>Views per Active User</th>
+                <th>Avg. Engagement Time</th>
+                <th>Event Count</th>
+                <th>Key Events</th>
+                <th>Total Revenue</th>
+                <th>Bounce Rate</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="action-buttons">
+            <button id="exportBtn" class="btn btn-primary">
+              <i class="fas fa-download"></i> Export
+            </button>
+            <button id="shareBtn" class="btn btn-primary">
+              <i class="fas fa-share-alt"></i> Share
+            </button>
+          </div>
+          <div class="pagination">
+            <button id="prevPage" class="pagination-btn" disabled>&laquo;</button>
+            <span id="pageInfo">Page 1 of 1 results</span>
+            <button id="nextPage" class="pagination-btn">&raquo;</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="businessProfileSection" style="display: none;">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Google Business Profile</h5>
+            <p class="card-text">Manage and view your Google Business Profile data.</p>
+            <button class="btn btn-connect" id="fetchBusinessProfileBtn">Fetch Data</button>
+            <div id="businessProfileData" class="mt-3"></div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Date Filter Modal -->
+  <!-- Updated Date Filter Modal -->
   <div class="modal fade" id="dateFilterModal" tabindex="-1" aria-labelledby="dateFilterModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="dateFilterModalLabel">Select Date Filter</h5>
+          <small class="modal-title">Date Filter</small>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <div class="d-grid gap-2">
-            <button class="btn btn-outline-primary" onclick="applyQuickDateFilter('30days')">Last 30 Days</button>
-            <button class="btn btn-outline-primary" onclick="applyQuickDateFilter('90days')">Last 90 Days</button>
-            <button class="btn btn-outline-primary" onclick="applyQuickDateFilter('lastMonth')">Last Month</button>
+          <div class="duration-section">
+            <h6>Select Duration</h6>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-secondary" onclick="applyQuickDateFilter('30days')">Last 30 Days</button>
+              <button class="btn active-btn" onclick="applyQuickDateFilter('90days')">Last 90 Days</button>
+              <button class="btn btn-outline-secondary" onclick="applyQuickDateFilter('lastMonth')">Last Month</button>
+            </div>
           </div>
-          <hr>
-          <label for="customStartDate" class="form-label">Custom Start Date:</label>
-          <input type="date" class="form-control" id="customStartDate">
-          <label for="customEndDate" class="form-label mt-2">Custom End Date:</label>
-          <input type="date" class="form-control" id="customEndDate">
+          <div class="custom-date-section">
+            <h6>Select Your Custom Date</h6>
+            <div class="date-input-group">
+              <div class="calendar-icon">
+                <i class="fas fa-calendar"></i>
+              </div>
+              <div style="width: 250px;">
+                <label>Start Date</label>
+                <input type="date" class="form-control" id="customStartDate" style="background-color: #f5f5f5;">
+              </div>
+              <div style="width: 250px;">
+                <label>End Date</label>
+                <input type="date" class="form-control" id="customEndDate" style="background-color: #f5f5f5;">
+              </div>
+            </div>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -352,7 +931,8 @@
   </div>
 
   <!-- Other Filters Modal -->
-  <div class="modal fade" id="otherFilterModal" tabindex="-1" aria-labelledby="otherFilterModalLabel" aria-hidden="true">
+  <div class="modal fade" id="otherFilterModal" tabindex="-1" aria-labelledby="otherFilterModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -360,7 +940,6 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <!-- Country Dropdown -->
           <div class="mb-3">
             <label for="modalFilterCountry" class="form-label">Country:</label>
             <select class="form-select" id="modalFilterCountry">
@@ -371,7 +950,6 @@
               <option value="Other">Other</option>
             </select>
           </div>
-          <!-- Device, Event, and Page Path -->
           <div class="mb-3">
             <label for="modalFilterDevice" class="form-label">Device:</label>
             <input type="text" class="form-control" id="modalFilterDevice" placeholder="desktop, mobile, tablet">
@@ -394,189 +972,223 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" onclick="applyOtherFilters()">Apply Filters</button>
+          <button type="button" class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Add Event Modal -->
-  <div class="modal fade" id="addEventModal" tabindex="-1" aria-labelledby="addEventModalLabel" aria-hidden="true">
+  <!-- Adding Task Modal -->
+  <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-      <div class="modal-content">
-        <form id="addEventForm">
-          <div class="modal-header">
-            <h5 class="modal-title" id="addEventModalLabel">Add Event</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
+      <div class="modal-content" style="width: 560px !important;">
+        <div class="modal-header">
+          <small id="addTaskModalLabel" style="color: gray; font-size: 2.9rem;">Adding a Task</small>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="addTaskForm">
           <div class="modal-body">
-            <!-- Event Title -->
             <div class="mb-3">
-              <label for="eventTitle" class="form-label">Title</label>
-              <input type="text" class="form-control" id="eventTitle" placeholder="Event title" required>
+              <input type="text" class="form-control" id="taskTitleTime" placeholder="Enter task title and time">
             </div>
-            <!-- Start Date & Time -->
-            <div class="mb-3">
-              <label for="eventStart" class="form-label">Start</label>
-              <input type="datetime-local" class="form-control" id="eventStart" required>
+            <div class="mb-3 d-flex align-items-center">
+              <div
+                style="width: 40px; height: 40px; background-color: #e0e0e0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                <i class="fas fa-clock" style="color: #555;"></i>
+              </div>
+              <div class="d-flex flex-grow-1">
+                <input type="datetime-local" class="form-control me-2 flex-grow-1" id="taskStartDate"
+                  style="border-radius: 5px; padding: 10px;">
+                <input type="datetime-local" class="form-control flex-grow-1" id="taskEndDate"
+                  style="border-radius: 5px; padding: 10px;">
+              </div>
             </div>
-            <!-- End Date & Time -->
             <div class="mb-3">
-              <label for="eventEnd" class="form-label">End</label>
-              <input type="datetime-local" class="form-control" id="eventEnd" required>
-            </div>
-            <!-- Description -->
-            <div class="mb-3">
-              <label for="eventDescription" class="form-label">Description</label>
-              <textarea class="form-control" id="eventDescription" placeholder="Add a description"></textarea>
+              <textarea class="form-control" id="taskDescription" placeholder="Enter description" rows="4"></textarea>
             </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save Event</button>
+          <div class="modal-footer" style="justify-content: flex-end;">
+            <button type="submit" class="btn btn-primary" style="border-radius: 20px;">Save</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- Event Detail Modal -->
-  <div class="modal fade" id="eventDetailModal" tabindex="-1" aria-labelledby="eventDetailModalLabel" aria-hidden="true">
+  <!-- Viewing Task Modal -->
+  <div class="modal fade" id="viewTaskModal" tabindex="-1" aria-labelledby="viewTaskModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="eventDetailModalLabel">Event Details</h5>
+          <small id="viewTaskModalLabel" style="color: gray; font-size: 2.3rem;">Viewing a Task</small>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p><strong>Title:</strong> <span id="detailTitle"></span></p>
-          <p><strong>Start:</strong> <span id="detailStart"></span></p>
-          <p><strong>End:</strong> <span id="detailEnd"></span></p>
-          <p><strong>Description:</strong></p>
-          <p id="detailDescription"></p>
+          <div class="d-flex align-items-center mb-2">
+            <div
+              style="width: 40px; height: 40px; background-color: #007bff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+              <i class="fas fa-check" style="color: #fff;"></i>
+            </div>
+            <div>
+              <h5 id="detailTitle" style="font-weight: bold; margin: 0;">This is the Task Name</h5>
+              <p id="detailDateRange" style="margin: 0; color: gray; font-size: 0.9rem;">Mar 10 - 11, 2025</p>
+            </div>
+          </div>
+          <div class="mb-3">
+            <textarea class="form-control" id="detailDescription" rows="4" readonly
+              style="background-color: #f0f0f0;">This is the task description...</textarea>
+          </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-danger" id="deleteEventBtn">Delete Event</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <div class="modal-footer" style="justify-content: flex-end;">
+          <button type="button" class="btn btn-danger" style="border-radius: 20px;">Discard</button>
         </div>
       </div>
     </div>
   </div>
 
-    <!-- JavaScript Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
-  
-    <script>
-      // Global Variables
-      let currentPage = 1,
-          rowsPerPage = 10,
-          tableData = [],
-          filteredData = [],
-          selectedPaths = [],
-          pagePathViewsChart,
-          userEngagementChart,
-          countryMapInstance,
-          currentSection = 'home',
-          activeFilterQuery = "";
-  
-      // Loader Functions
-      function showLoader() { document.getElementById('loader').style.display = 'flex'; }
-      function hideLoader() { document.getElementById('loader').style.display = 'none'; }
-  
-      // Filter Functions
-      function addFilterIcons() {
-        const container = document.getElementById('additionalSection');
-        if (!container) return;
-        container.insertAdjacentHTML('afterbegin', `
-          <div class="d-flex justify-content-end filter-icons">
-            <i class="fas fa-calendar-alt" id="dateFilterIcon" title="Date Filter"></i>
-            <i class="fas fa-filter" id="otherFilterIcon" title="Other Filters"></i>
-          </div>
-          <div id="activeFiltersLabel"></div>
-        `);
-        document.getElementById('dateFilterIcon').addEventListener('click', () =>
-          new bootstrap.Modal(document.getElementById('dateFilterModal')).show()
-        );
-        document.getElementById('otherFilterIcon').addEventListener('click', () =>
-          new bootstrap.Modal(document.getElementById('otherFilterModal')).show()
-        );
+  <!-- JavaScript Libraries and Code -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+  <script>
+    // Global Variables
+    let currentPage = 1,
+      rowsPerPage = 10,
+      tableData = [],
+      filteredData = [],
+      selectedPaths = [],
+      pagePathViewsChart,
+      userEngagementChart,
+      countryMapInstance,
+      currentSection = 'dashboard',
+      activeFilterQuery = "";
+
+    // Loader Functions
+    function showLoader() { document.getElementById('loader').style.display = 'flex'; }
+    function hideLoader() { document.getElementById('loader').style.display = 'none'; }
+
+    // Toggle Select All Checkboxes in Table
+    function toggleSelectAll(source) {
+      const checkboxes = document.querySelectorAll('#data-table tbody input[type="checkbox"]');
+      checkboxes.forEach(cb => cb.checked = source.checked);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const randomSeed = Math.random().toString(36).substring(2);
+      document.getElementById('avatar').src = `https://api.dicebear.com/6.x/identicon/svg?seed=${randomSeed}`;
+    });
+
+    function applyFilters() {
+      const startDate = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : "",
+        endDate = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : "",
+        customStart = document.getElementById('customStartDate') ? document.getElementById('customStartDate').value : "",
+        customEnd = document.getElementById('customEndDate') ? document.getElementById('customEndDate').value : "",
+        finalStart = customStart || startDate,
+        finalEnd = customEnd || endDate,
+        country = document.getElementById('modalFilterCountry') ? document.getElementById('modalFilterCountry').value : "",
+        device = document.getElementById('modalFilterDevice') ? document.getElementById('modalFilterDevice').value : "",
+        eventVal = document.getElementById('modalFilterEvent') ? document.getElementById('modalFilterEvent').value : "",
+        pagePath = document.getElementById('modalFilterPagePath') ? document.getElementById('modalFilterPagePath').value : "",
+        matchTypeElem = document.querySelector('input[name="modalMatchType"]:checked'),
+        matchType = matchTypeElem ? matchTypeElem.value : "CONTAINS";
+      let url = '/analytics?';
+      if (finalStart) url += `startDate=${encodeURIComponent(finalStart)}&`;
+      if (finalEnd) url += `endDate=${encodeURIComponent(finalEnd)}&`;
+      if (country) url += `country=${encodeURIComponent(country)}&`;
+      if (device) url += `device=${encodeURIComponent(device)}&`;
+      if (eventVal) url += `event=${encodeURIComponent(eventVal)}&`;
+      if (pagePath) url += `pagePath=${encodeURIComponent(pagePath)}&matchType=${encodeURIComponent(matchType)}&`;
+      url = url.replace(/&$/, '');
+      activeFilterQuery = "";
+      if (finalStart || finalEnd) activeFilterQuery += `Date: ${finalStart} to ${finalEnd} | `;
+      if (country) activeFilterQuery += `Country: ${country} | `;
+      if (device) activeFilterQuery += `Device: ${device} | `;
+      if (eventVal) activeFilterQuery += `Event: ${eventVal} | `;
+      if (pagePath) activeFilterQuery += `Page Path (${matchType}): ${pagePath}`;
+      document.getElementById('activeFiltersLabel').innerText = activeFilterQuery;
+      currentPage = 1;
+      fetchAnalyticsData(url);
+      bootstrap.Modal.getInstance(document.getElementById('dateFilterModal'))?.hide();
+      bootstrap.Modal.getInstance(document.getElementById('otherFilterModal'))?.hide();
+    }
+
+    function applyQuickDateFilter(option) {
+      document.querySelectorAll('#dateFilterModal .duration-section .btn').forEach(btn => {
+        btn.classList.remove('active-btn');
+        btn.classList.add('btn-outline-secondary');
+      });
+      if (option === '30days') {
+        const btn = document.querySelector('#dateFilterModal .duration-section button[onclick*="30days"]');
+        btn.classList.add('active-btn');
+        btn.classList.remove('btn-outline-secondary');
+      } else if (option === '90days') {
+        const btn = document.querySelector('#dateFilterModal .duration-section button[onclick*="90days"]');
+        btn.classList.add('active-btn');
+        btn.classList.remove('btn-outline-secondary');
+      } else if (option === 'lastMonth') {
+        const btn = document.querySelector('#dateFilterModal .duration-section button[onclick*="lastMonth"]');
+        btn.classList.add('active-btn');
+        btn.classList.remove('btn-outline-secondary');
       }
-      function applyFilters() {
-        const startDate = document.getElementById('filterStartDate') ? document.getElementById('filterStartDate').value : "",
-              endDate = document.getElementById('filterEndDate') ? document.getElementById('filterEndDate').value : "",
-              customStart = document.getElementById('customStartDate') ? document.getElementById('customStartDate').value : "",
-              customEnd = document.getElementById('customEndDate') ? document.getElementById('customEndDate').value : "",
-              finalStart = customStart || startDate,
-              finalEnd = customEnd || endDate,
-              country = document.getElementById('modalFilterCountry') ? document.getElementById('modalFilterCountry').value : (document.getElementById('filterCountry') ? document.getElementById('filterCountry').value : ""),
-              device = document.getElementById('modalFilterDevice') ? document.getElementById('modalFilterDevice').value : (document.getElementById('filterDevice') ? document.getElementById('filterDevice').value : ""),
-              eventVal = document.getElementById('modalFilterEvent') ? document.getElementById('modalFilterEvent').value : (document.getElementById('filterEvent') ? document.getElementById('filterEvent').value : ""),
-              pagePath = document.getElementById('modalFilterPagePath') ? document.getElementById('modalFilterPagePath').value : (document.getElementById('filterPagePath') ? document.getElementById('filterPagePath').value : ""),
-              matchTypeElem = document.querySelector('input[name="modalMatchType"]:checked') || document.querySelector('input[name="matchType"]:checked'),
-              matchType = matchTypeElem ? matchTypeElem.value : "CONTAINS";
-        let url = '/analytics?';
-        if (finalStart) url += `startDate=${encodeURIComponent(finalStart)}&`;
-        if (finalEnd) url += `endDate=${encodeURIComponent(finalEnd)}&`;
-        if (country) url += `country=${encodeURIComponent(country)}&`;
-        if (device) url += `device=${encodeURIComponent(device)}&`;
-        if (eventVal) url += `event=${encodeURIComponent(eventVal)}&`;
-        if (pagePath) url += `pagePath=${encodeURIComponent(pagePath)}&matchType=${encodeURIComponent(matchType)}&`;
-        url = url.replace(/&$/, '');
-        activeFilterQuery = "";
-        if (finalStart || finalEnd) activeFilterQuery += `Date: ${finalStart} to ${finalEnd} | `;
-        if (country) activeFilterQuery += `Country: ${country} | `;
-        if (device) activeFilterQuery += `Device: ${device} | `;
-        if (eventVal) activeFilterQuery += `Event: ${eventVal} | `;
-        if (pagePath) activeFilterQuery += `Page Path (${matchType}): ${pagePath}`;
-        document.getElementById('activeFiltersLabel').innerText = activeFilterQuery;
-        currentPage = 1;
-        fetchAnalyticsData(url);
-        // Hide modals if open
-        bootstrap.Modal.getInstance(document.getElementById('dateFilterModal'))?.hide();
-        bootstrap.Modal.getInstance(document.getElementById('otherFilterModal'))?.hide();
+      const today = new Date();
+      let startDate, endDate;
+      if (option === '30days') {
+        const pastDate = new Date(); pastDate.setDate(today.getDate() - 30);
+        startDate = pastDate.toISOString().split('T')[0];
+        endDate = today.toISOString().split('T')[0];
+      } else if (option === '90days') {
+        const pastDate = new Date(); pastDate.setDate(today.getDate() - 90);
+        startDate = pastDate.toISOString().split('T')[0];
+        endDate = today.toISOString().split('T')[0];
+      } else if (option === 'lastMonth') {
+        const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1),
+          lastDayLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+        startDate = firstDayLastMonth.toISOString().split('T')[0];
+        endDate = lastDayLastMonth.toISOString().split('T')[0];
       }
-      function applyQuickDateFilter(option) {
-        let startDate = "", endDate = "";
-        const today = new Date();
-        if (option === '30days') {
-          const pastDate = new Date(); pastDate.setDate(today.getDate() - 30);
-          startDate = pastDate.toISOString().split('T')[0];
-          endDate = today.toISOString().split('T')[0];
-        } else if (option === '90days') {
-          const pastDate = new Date(); pastDate.setDate(today.getDate() - 90);
-          startDate = pastDate.toISOString().split('T')[0];
-          endDate = today.toISOString().split('T')[0];
-        } else if (option === 'lastMonth') {
-          const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1),
-                lastDayLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-          startDate = firstDayLastMonth.toISOString().split('T')[0];
-          endDate = lastDayLastMonth.toISOString().split('T')[0];
-        }
-        if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = startDate;
-        if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = endDate;
-        if (document.getElementById('customStartDate')) document.getElementById('customStartDate').value = startDate;
-        if (document.getElementById('customEndDate')) document.getElementById('customEndDate').value = endDate;
-      }
-      function applyCustomDateFilter() { applyFilters(); }
-  
-      // Calendar Functions
-      function initCalendar() {
-        const calendarEl = document.getElementById('calendarView');
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-          initialView: 'dayGridMonth',
-          headerToolbar: false,
-          editable: true,
-          selectable: false,
-          events: function(fetchInfo, successCallback, failureCallback) {
-            const token = localStorage.getItem('jwtToken');
-            fetch('/google-calendar/events', {
-              method: 'GET',
-              headers: { 'Authorization': `Bearer ${token}` }
-            })
+      document.getElementById('customStartDate').value = startDate;
+      document.getElementById('customEndDate').value = endDate;
+    }
+    function applyCustomDateFilter() { applyFilters(); }
+
+    // Calendar Functions (unchanged)
+    function initCalendar() {
+      const calendarEl = document.getElementById('calendarView');
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: false,
+        editable: true,
+        selectable: false,
+        eventContent: function (arg) {
+          const ext = arg.event.extendedProps || {};
+          const title = arg.event.title || 'Untitled Event';
+          const subtitle = ext.subtitle || '';
+          let borderColor = "#cf8897";
+          if (ext.taskIndex && ext.taskIndex > 1) { borderColor = "#92c9b7"; }
+          const html = `
+            <div class="task-card" style="--accent-color: #ff6f61; border-left: 4px solid ${borderColor};">
+              <div class="task-icon">
+                <i class="fas fa-calendar-alt"></i>
+              </div>
+              <div class="task-content">
+                <p class="task-title">${title}</p>
+                <p class="task-subtitle">${subtitle}</p>
+              </div>
+              <div class="task-options">
+                <i class="fas fa-ellipsis-h"></i>
+              </div>
+            </div>
+          `;
+          return { html: html };
+        },
+        events: function (fetchInfo, successCallback, failureCallback) {
+          const token = localStorage.getItem('jwtToken');
+          fetch('/google-calendar/events', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
             .then(response => response.json())
             .then(data => {
               const events = data.map(event => ({
@@ -584,567 +1196,691 @@
                 title: event.summary,
                 start: event.start.dateTime || event.start.date,
                 end: event.end.dateTime || event.end.date,
-                description: event.description
+                extendedProps: {
+                  icon: event.extendedProps?.icon || 'fa-building',
+                  subtitle: event.extendedProps?.subtitle || '',
+                  taskIndex: event.extendedProps?.taskIndex || 1
+                }
               }));
               successCallback(events);
             })
-            .catch(error => { console.error('Error fetching Calendar events:', error); failureCallback(error); });
-          },
-          eventClick: function(info) { openEventDetailModal(info.event); }
-        });
-        calendar.render();
-        window.myCalendar = calendar;
+            .catch(error => {
+              console.error('Error fetching Calendar events:', error);
+              failureCallback(error);
+            });
+        },
+        eventClick: function (info) { openEventDetailModal(info.event); }
+      });
+      calendar.render();
+      window.myCalendar = calendar;
+      updateCalendarHeader();
+    }
+
+    function updateCalendarHeader() {
+      if (window.myCalendar) {
+        document.getElementById('calendarTitle').innerText = window.myCalendar.view.title;
+      }
+    }
+    function initCalendarHeader() {
+      document.getElementById('prevBtn').addEventListener('click', function () {
+        window.myCalendar.prev();
         updateCalendarHeader();
-      }
-      function updateCalendarHeader() {
-        if (window.myCalendar) {
-          document.getElementById('calendarTitle').innerText = window.myCalendar.view.title;
-        }
-      }
-      function initCalendarHeader() {
-        document.getElementById('prevBtn').addEventListener('click', function() {
-          window.myCalendar.prev();
-          updateCalendarHeader();
-          loadEventList();
-        });
-        document.getElementById('todayBtn').addEventListener('click', function() {
-          window.myCalendar.today();
-          updateCalendarHeader();
-          loadEventList();
-        });
-        document.getElementById('nextBtn').addEventListener('click', function() {
-          window.myCalendar.next();
-          updateCalendarHeader();
-          loadEventList();
-        });
-        document.getElementById('viewSelect').addEventListener('change', function() {
-          window.myCalendar.changeView(this.value);
-          updateCalendarHeader();
-        });
-      }
-      function initMiniCalendar() {
-        const miniContainer = document.getElementById('miniCalendar');
-        miniContainer.innerHTML = `
-          <div class="mini-header">
-            <button id="miniPrevBtn">&lt;</button>
-            <div id="miniTitle" class="mini-title"></div>
-            <button id="miniNextBtn">&gt;</button>
-          </div>
-          <div id="miniCal"></div>
-        `;
-        const miniEl = document.getElementById('miniCal');
-        const miniCalendar = new FullCalendar.Calendar(miniEl, {
-          initialView: 'dayGridMonth',
-          headerToolbar: false,
-          height: 400,
-          selectable: true,
-          fixedWeekCount: false,
-          dateClick: function(info) {
-            window.myCalendar.gotoDate(info.date);
-            updateCalendarHeader();
-            loadEventList();
-          }
-        });
-        miniCalendar.render();
-        document.getElementById('miniTitle').innerText = miniCalendar.view.title;
-        document.getElementById('miniPrevBtn').addEventListener('click', function() {
-          miniCalendar.prev();
-          document.getElementById('miniTitle').innerText = miniCalendar.view.title;
-        });
-        document.getElementById('miniNextBtn').addEventListener('click', function() {
-          miniCalendar.next();
-          document.getElementById('miniTitle').innerText = miniCalendar.view.title;
-        });
-      }
-  
-      // Event Handling for Calendar & Events
-      document.getElementById('addEventForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const title = document.getElementById('eventTitle').value.trim(),
-              start = document.getElementById('eventStart').value,
-              end = document.getElementById('eventEnd').value,
-              description = document.getElementById('eventDescription').value.trim();
-        if (!title || !start || !end) {
-          alert("Please fill in all required fields.");
-          return;
-        }
-        const token = localStorage.getItem('jwtToken');
-        const googlePayload = { summary: title, start, end, description, timeZone: 'UTC' },
-              localPayload = { title, start, end, description };
-        try {
-          // Save event in local DB
-          await fetch('/calendar/events', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify(localPayload)
-          });
-          // Save event in Google Calendar
-          const googleResponse = await fetch('/google-calendar/events', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify(googlePayload)
-          });
-          const googleEvent = await googleResponse.json();
-          if (!googleEvent.start) {
-            console.error("Google Event Error:", googleEvent);
-            alert("Error: Event start time is undefined.");
-            return;
-          }
-          window.myCalendar.addEvent({
-            id: googleEvent.id,
-            title: googleEvent.summary,
-            start: googleEvent.start.dateTime || googleEvent.start.date || start,
-            end: googleEvent.end.dateTime || googleEvent.end.date || end,
-            description: googleEvent.description
-          });
-          alert("Event added successfully!");
-          new bootstrap.Modal(document.getElementById('addEventModal')).hide();
-          document.getElementById('addEventForm').reset();
-          loadEventList();
-        } catch (error) {
-          console.error("Error adding event:", error);
-          alert("An error occurred while adding the event.");
-        }
+        loadEventList();
       });
-      function openEventDetailModal(event) {
-        document.getElementById('detailTitle').innerText = event.title;
-        document.getElementById('detailStart').innerText = event.start ? event.start.toISOString() : '';
-        document.getElementById('detailEnd').innerText = event.end ? event.end.toISOString() : '';
-        document.getElementById('detailDescription').innerText = event.extendedProps.description || '';
-        const modal = new bootstrap.Modal(document.getElementById('eventDetailModal'));
-        modal.show();
-        // Reset delete button handler
-        const newDeleteBtn = document.getElementById('deleteEventBtn').cloneNode(true);
-        document.getElementById('deleteEventBtn').parentNode.replaceChild(newDeleteBtn, document.getElementById('deleteEventBtn'));
-        newDeleteBtn.addEventListener('click', async function() {
-          if (confirm("Are you sure you want to delete this event?")) {
-            const token = localStorage.getItem('jwtToken');
-            try {
-              await fetch('/google-calendar/events/' + event.id, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-              await fetch('/calendar/events/' + event.id, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-              event.remove();
-              modal.hide();
-              alert("Event deleted successfully!");
-              loadEventList();
-            } catch (error) {
-              console.error("Error deleting event:", error);
-              alert("An error occurred while deleting the event.");
-            }
-          }
+      document.getElementById('todayBtn').addEventListener('click', function () {
+        window.myCalendar.today();
+        updateCalendarHeader();
+        loadEventList();
+      });
+      document.getElementById('nextBtn').addEventListener('click', function () {
+        window.myCalendar.next();
+        updateCalendarHeader();
+        loadEventList();
+      });
+      document.getElementById('viewSelect').addEventListener('change', function () {
+        window.myCalendar.changeView(this.value);
+        updateCalendarHeader();
+      });
+    }
+
+    // Helper function to format a date range
+    function formatDateRange(start, end) {
+      const options = { month: 'short', day: 'numeric' };
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      const startFormatted = startDate.toLocaleDateString(undefined, options);
+      const endFormatted = endDate.toLocaleDateString(undefined, options);
+      return `${startFormatted} - ${endFormatted}`;
+    }
+
+    // Open Viewing Task Modal
+    function openEventDetailModal(event) {
+      const titleElem = document.getElementById('detailTitle');
+      if (titleElem) { titleElem.innerText = event.title; }
+      const dateRangeElem = document.getElementById('detailDateRange');
+      if (dateRangeElem && event.start && event.end) { dateRangeElem.innerText = formatDateRange(event.start, event.end); }
+      const descElem = document.getElementById('detailDescription');
+      if (descElem) { descElem.innerText = event.extendedProps.description || ''; }
+      const modal = new bootstrap.Modal(document.getElementById('viewTaskModal'));
+      modal.show();
+    }
+
+    function openEventDetailModalById(eventId) {
+      const event = window.myCalendar.getEventById(eventId);
+      if (event) { openEventDetailModal(event); }
+      else { alert("Event not found."); }
+    }
+
+    async function loadEventList() {
+      const token = localStorage.getItem('jwtToken');
+      try {
+        const response = await fetch('/google-calendar/events', {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-      }
-      function openEventDetailModalById(eventId) {
-        const event = window.myCalendar.getEventById(eventId);
-        if (event) { openEventDetailModal(event); }
-        else { alert("Event not found."); }
-      }
-      async function loadEventList() {
-        const token = localStorage.getItem('jwtToken');
-        try {
-          const response = await fetch('/google-calendar/events', { method: 'GET', headers: { 'Authorization': `Bearer ${token}` } });
-          const events = await response.json();
-          const eventListDiv = document.getElementById('eventList');
-          if (Array.isArray(events)) {
-            eventListDiv.innerHTML = `<ul class="list-group">` +
-              events.map(event => {
-                const startStr = event.start.dateTime || event.start.date || '';
-                return `<li class="list-group-item" onclick="openEventDetailModalById('${event.id}')">
-                          <strong>${event.summary}</strong><br>
-                          <small>${startStr}</small>
-                        </li>`;
-              }).join('') +
-              `</ul>`;
-          }
-        } catch (error) { console.error("Error loading event list:", error); }
-      }
-  
-      // Analytics Functions
-      async function fetchAnalyticsData(url = '/analytics') {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) { alert("Not logged in"); window.location.href = '/login'; return; }
-        showLoader();
-        try {
-          const response = await fetch(url, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            if (data && data.rows) {
-              tableData = data.rows;
-              filteredData = data.rows;
-              if (currentSection === 'analytics') { displayTableData(); }
-              updatePagePathViewsChart();
-              updateUserEngagementChart();
-              createCountryMap(data);
-            } else {
-              document.getElementById('activeFiltersLabel').innerHTML = `<p class="text-center text-danger">No data returned from GA API.</p>`;
-            }
-          } else {
-            document.getElementById('activeFiltersLabel').innerHTML = `<p class="text-center text-danger">Not connected to Google Analytics.</p>`;
-          }
-        } catch (error) {
-          console.error('Error fetching analytics data:', error);
-          alert("An error occurred while fetching analytics data.");
-        } finally { hideLoader(); }
-      }
-      function aggregateTableData(rows) {
-        const aggregated = {};
-        rows.forEach(row => {
-          const pagePath = row.dimensionValues[0].value || 'Unknown';
-          if (!aggregated[pagePath]) {
-            aggregated[pagePath] = JSON.parse(JSON.stringify(row));
-          } else {
-            for (let i = 0; i < row.metricValues.length; i++) {
-              const prevVal = parseFloat(aggregated[pagePath].metricValues[i].value),
-                    currVal = parseFloat(row.metricValues[i].value);
-              aggregated[pagePath].metricValues[i].value = (prevVal + currVal).toString();
-            }
-          }
+        const events = await response.json();
+        const now = new Date();
+        const upcomingEvents = events.filter(event => {
+          let eventDate;
+          if (event.start.dateTime) { eventDate = new Date(event.start.dateTime); }
+          else if (event.start.date) { eventDate = new Date(event.start.date); }
+          return eventDate >= now;
         });
-        return Object.values(aggregated);
-      }
-      function displayTableData() {
-        const tableBody = document.querySelector('#data-table tbody');
-        if (!tableBody) return;
-        tableBody.innerHTML = "";
-        const aggregatedData = aggregateTableData(filteredData),
-              start = (currentPage - 1) * rowsPerPage,
-              end = start + rowsPerPage,
-              paginatedData = aggregatedData.slice(start, end);
-        paginatedData.forEach(row => {
-          const path = row.dimensionValues[0].value || 'Unknown',
-                isChecked = selectedPaths.some(selectedRow => selectedRow.dimensionValues[0].value === path);
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td><input type="checkbox" ${isChecked ? 'checked' : ''} onchange="togglePathSelection('${path}', this.checked)"></td>
-            <td>${path}</td>
-            <td>${row.metricValues[2].value}</td>
-            <td>${row.metricValues[0].value}</td>
-            <td>${row.metricValues[3].value}</td>
-            <td>${row.metricValues[5].value}</td>
-            <td>${row.metricValues[4].value}</td>
-            <td>All Events</td>
-            <td>${row.metricValues[7].value}</td>
-            <td>${row.metricValues[1].value}</td>
-          `;
-          tableBody.appendChild(tr);
-        });
-        updatePagination();
-      }
-      function togglePathSelection(path, isSelected) {
-        const row = filteredData.find(row => row.dimensionValues[0].value === path);
-        if (isSelected) {
-          if (selectedPaths.length < 5) { selectedPaths.push(row); }
-          else { alert("You can only select up to 5 paths."); }
+        const eventListDiv = document.getElementById('eventList');
+        if (Array.isArray(upcomingEvents) && upcomingEvents.length > 0) {
+          eventListDiv.innerHTML = `<ul class="list-group">` +
+            upcomingEvents.map(event => {
+              const startStr = event.start.dateTime || event.start.date || '';
+              return `<li class="list-group-item" onclick="openEventDetailModalById('${event.id}')">
+                        <strong>${event.summary}</strong><br>
+                        <small>${startStr}</small>
+                      </li>`;
+            }).join('') +
+            `</ul>`;
         } else {
-          selectedPaths = selectedPaths.filter(selectedRow => selectedRow.dimensionValues[0].value !== path);
+          eventListDiv.innerHTML = `<p class="text-center text-muted">No upcoming events</p>`;
         }
-        updatePagePathViewsChart();
-        updateUserEngagementChart();
+      } catch (error) {
+        console.error("Error loading event list:", error);
       }
-      function updatePagination() {
-        const totalPages = Math.ceil(aggregateTableData(filteredData).length / rowsPerPage);
-        document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
-        document.getElementById('prevPage').disabled = currentPage === 1;
-        document.getElementById('nextPage').disabled = currentPage === totalPages;
-      }
-      function downloadExcel() {
-        let csvContent = "data:text/csv;charset=utf-8,Page Path,Views,Active Users,Views per Active User,Avg. Engagement Time,Event Count,Total Revenue,Bounce Rate\n";
-        const aggregatedData = aggregateTableData(tableData);
-        aggregatedData.forEach(row => {
-          const csvRow = [
-            row.dimensionValues[0].value || 'Unknown',
-            row.metricValues[2].value,
-            row.metricValues[0].value,
-            row.metricValues[3].value,
-            row.metricValues[5].value,
-            row.metricValues[4].value,
-            row.metricValues[7].value,
-            row.metricValues[1].value
-          ];
-          csvContent += csvRow.join(",") + "\n";
+    }
+
+    async function fetchAnalyticsData(url = '/analytics') {
+      const token = localStorage.getItem('jwtToken');
+      if (!token) { alert("Not logged in"); window.location.href = '/login'; return; }
+      showLoader();
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
         });
-        const encodedUri = encodeURI(csvContent),
-              link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "analytics_data.csv");
-        document.body.appendChild(link);
-        link.click();
-      }
-      function shareTable() {
-        const shareLink = `${window.location.href}?share=true`;
-        navigator.clipboard.writeText(shareLink).then(() => {
-          alert("Table share link copied to clipboard!");
-        });
-      }
-      function updatePagePathViewsChart() {
-        const canvas = document.getElementById('pagePathViewsChart');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d'),
-              displayData = selectedPaths.length > 0 ? selectedPaths : aggregateTableData(filteredData).slice(0, 5),
-              pagePaths = displayData.map(row => row.dimensionValues[0].value || 'Unknown'),
-              views = displayData.map(row => row.metricValues[2].value);
-        if (pagePathViewsChart) { pagePathViewsChart.destroy(); }
-        pagePathViewsChart = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: pagePaths,
-            datasets: [{
-              label: 'Views',
-              data: views,
-              backgroundColor: 'rgba(105, 105, 105, 0.6)',
-              borderColor: 'rgba(105, 105, 105, 1)',
-              borderWidth: 1
-            }]
-          },
-          options: { responsive: true, scales: { y: { beginAtZero: true } } }
-        });
-      }
-      function updateUserEngagementChart() {
-        const canvas = document.getElementById('userEngagementChart');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d'),
-              displayData = selectedPaths.length > 0 ? selectedPaths : aggregateTableData(filteredData).slice(0, 5),
-              pagePaths = displayData.map(row => row.dimensionValues[0].value || 'Unknown'),
-              engagementTimes = displayData.map(row => row.metricValues[5].value);
-        if (userEngagementChart) { userEngagementChart.destroy(); }
-        userEngagementChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: pagePaths,
-            datasets: [{
-              label: 'Avg. Engagement Time',
-              data: engagementTimes,
-              borderColor: 'rgba(255, 159, 64, 1)',
-              backgroundColor: 'rgba(255, 159, 64, 0.2)',
-              fill: true
-            }]
-          },
-          options: { responsive: true, scales: { y: { beginAtZero: true } } }
-        });
-      }
-      function createCountryMap(data) {
-        if (countryMapInstance) { countryMapInstance.remove(); }
-        countryMapInstance = L.map('countryMap').setView([20, 0], 2);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(countryMapInstance);
-        data.rows.forEach(row => {
-          const countryName = row.dimensionValues[1].value,
-                views = row.metricValues[2].value,
-                latLng = getCountryCoordinates(countryName);
-          if (latLng) {
-            L.circleMarker(latLng, {
-              radius: Math.sqrt(views) / 2,
-              fillColor: "#696969",
-              color: "#696969",
-              weight: 1,
-              fillOpacity: 0.8
-            }).addTo(countryMapInstance).bindPopup(`${countryName}: ${views} views`);
-          }
-        });
-      }
-      function getCountryCoordinates(country) {
-        const countryCoordinates = {
-          "United States": [37.0902, -95.7129],
-          "India": [20.5937, 78.9629],
-          "Brazil": [-14.2350, -51.9253]
-        };
-        return countryCoordinates[country] || null;
-      }
-  
-      // User Info and Logout
-      async function fetchUserInfo() {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) {
-          alert("You are not logged in. Redirecting to login...");
-          window.location.href = '/login';
-          return;
-        }
-        try {
-          const response = await fetch('/api/user/profile', {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-          });
-          if (response.ok) {
-            const user = await response.json();
-            document.getElementById('user-name').innerText = user.name;
-            if (user.is_admin) {
-              document.getElementById('adminSettings').style.display = 'block';
-            }
-            hideLoader();
-            document.getElementById('dashboard-container').style.display = 'flex';
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.rows) {
+            tableData = data.rows;
+            filteredData = data.rows;
+            updatePagePathViewsChart();
+            updateUserEngagementChart();
+            createCountryMap(data);
+            if (currentSection === 'analytics') { displayTableData(); }
           } else {
-            alert("Failed to fetch user info. Please log in again.");
-            window.location.href = '/login';
+            document.getElementById('activeFiltersLabel').innerHTML = `<p class="text-center text-danger">No data returned from GA API.</p>`;
           }
-        } catch (error) {
-          console.error('Error fetching user info:', error);
-          alert("An error occurred. Redirecting to login.");
+        } else {
+          document.getElementById('activeFiltersLabel').innerHTML = `<p class="text-center text-danger">Not connected to Google Analytics.</p>`;
+        }
+      } catch (error) {
+        console.error('Error fetching analytics data:', error);
+        alert("An error occurred while fetching analytics data.");
+      } finally { hideLoader(); }
+    }
+
+    function aggregateTableData(rows) {
+      const aggregated = {};
+      rows.forEach(row => {
+        const pagePath = row.dimensionValues[0].value || 'Unknown';
+        if (!aggregated[pagePath]) {
+          aggregated[pagePath] = JSON.parse(JSON.stringify(row));
+        } else {
+          for (let i = 0; i < row.metricValues.length; i++) {
+            const prevVal = parseFloat(aggregated[pagePath].metricValues[i].value),
+              currVal = parseFloat(row.metricValues[i].value);
+            aggregated[pagePath].metricValues[i].value = (prevVal + currVal).toString();
+          }
+        }
+      });
+      return Object.values(aggregated);
+    }
+
+    function displayTableData() {
+      const tableBody = document.querySelector('#data-table tbody');
+      if (!tableBody) return;
+      tableBody.innerHTML = "";
+      const aggregatedData = aggregateTableData(filteredData),
+        start = (currentPage - 1) * rowsPerPage,
+        end = start + rowsPerPage,
+        paginatedData = aggregatedData.slice(start, end);
+      paginatedData.forEach(row => {
+        const path = row.dimensionValues[0].value || 'Unknown';
+        // Mapping the metrics as per:
+        // [Active Users, Bounce Rate, Views, Views per Active User, Event Count, Avg. Engagement Time, New Users, Total Revenue]
+        const views = row.metricValues[2].value,
+          activeUsers = row.metricValues[0].value,
+          viewsPerActive = row.metricValues[3].value,
+          avgEngagement = row.metricValues[5].value,
+          eventCount = row.metricValues[4].value,
+          keyEvents = "All Events",
+          totalRevenue = row.metricValues[7].value,
+          bounceRate = row.metricValues[1].value;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input type="checkbox" onchange="togglePathSelection('${path}', this.checked)"></td>
+          <td>${path}</td>
+          <td>${views}</td>
+          <td>${activeUsers}</td>
+          <td>${viewsPerActive}</td>
+          <td>${avgEngagement}</td>
+          <td>${eventCount}</td>
+          <td>${keyEvents}</td>
+          <td>${totalRevenue}</td>
+          <td>${bounceRate}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+      updatePagination();
+    }
+
+    function togglePathSelection(path, isSelected) {
+      const row = filteredData.find(row => row.dimensionValues[0].value === path);
+      if (isSelected) {
+        if (selectedPaths.length < 5) { selectedPaths.push(row); }
+        else { alert("You can only select up to 5 paths."); }
+      } else {
+        selectedPaths = selectedPaths.filter(selectedRow => selectedRow.dimensionValues[0].value !== path);
+      }
+      updatePagePathViewsChart();
+      updateUserEngagementChart();
+    }
+
+    function updatePagination() {
+      const totalPages = Math.ceil(aggregateTableData(filteredData).length / rowsPerPage);
+      document.getElementById('pageInfo').textContent = ` ${currentPage} - ${totalPages} results`;
+      document.getElementById('prevPage').disabled = currentPage === 1;
+      document.getElementById('nextPage').disabled = currentPage === totalPages;
+    }
+
+    function downloadExcel() {
+      let csvContent = "data:text/csv;charset=utf-8,Page Path,Views,Active Users,Views per Active User,Avg. Engagement Time,Event Count,Key Events,Total Revenue,Bounce Rate\n";
+      const aggregatedData = aggregateTableData(tableData);
+      aggregatedData.forEach(row => {
+        const csvRow = [
+          row.dimensionValues[0].value || 'Unknown',
+          row.metricValues[2].value,
+          row.metricValues[0].value,
+          row.metricValues[3].value,
+          row.metricValues[5].value,
+          row.metricValues[4].value,
+          "All Events",
+          row.metricValues[7].value,
+          row.metricValues[1].value
+        ];
+        csvContent += csvRow.join(",") + "\n";
+      });
+      const encodedUri = encodeURI(csvContent),
+        link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "analytics_data.csv");
+      document.body.appendChild(link);
+      link.click();
+    }
+
+    function shareTable() {
+      const shareLink = `${window.location.href}?share=true`;
+      navigator.clipboard.writeText(shareLink).then(() => {
+        alert("Table share link copied to clipboard!");
+      });
+    }
+
+    // Update Bar Chart UI: Thicker bars with top border radius 10px
+    function updatePagePathViewsChart() {
+      const canvas = document.getElementById('pagePathViewsChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d'),
+        displayData = selectedPaths.length > 0 ? selectedPaths : aggregateTableData(filteredData).slice(0, 5),
+        pagePaths = displayData.map(row => row.dimensionValues[0].value || 'Unknown'),
+        views = displayData.map(row => row.metricValues[2].value);
+      const barColors = displayData.map((_, index) =>
+        index === 0 ? 'rgba(0, 123, 255, 0.6)' : 'rgba(105,105,105,0.6)'
+      );
+      const borderColors = displayData.map((_, index) =>
+        index === 0 ? 'rgba(0, 123, 255, 1)' : 'rgba(105,105,105,1)'
+      );
+      if (pagePathViewsChart) { pagePathViewsChart.destroy(); }
+      pagePathViewsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: pagePaths,
+          datasets: [{
+            label: 'Views',
+            data: views,
+            backgroundColor: barColors,
+            borderColor: borderColors,
+            borderWidth: 1,
+            barThickness: 40,
+            borderRadius: { topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 }
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `Value: ${context.parsed.y}`;
+                }
+              }
+            }
+          },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+
+    // Update Line Chart UI: Smooth line with gradient fill
+    function updateUserEngagementChart() {
+      const canvas = document.getElementById('userEngagementChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d'),
+        displayData = selectedPaths.length > 0 ? selectedPaths : aggregateTableData(filteredData).slice(0, 5),
+        pagePaths = displayData.map(row => row.dimensionValues[0].value || 'Unknown'),
+        engagementTimes = displayData.map(row => row.metricValues[5].value);
+      let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, 'rgba(255,159,64,0.4)');
+      gradient.addColorStop(1, 'rgba(255,159,64,0)');
+      if (userEngagementChart) { userEngagementChart.destroy(); }
+      userEngagementChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: pagePaths,
+          datasets: [{
+            label: 'Avg. Engagement Time',
+            data: engagementTimes,
+            tension: 0.4,
+            cubicInterpolationMode: 'monotone',
+            fill: true,
+            backgroundColor: gradient,
+            borderColor: 'rgba(255,159,64,1)'
+          }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+      });
+    }
+
+    // Update Map UI: Use CartoDB Positron tile layer
+    function createCountryMap(data) {
+      if (countryMapInstance) { countryMapInstance.remove(); }
+      countryMapInstance = L.map('countryMap').setView([20, 0], 2);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO'
+      }).addTo(countryMapInstance);
+      data.rows.forEach(row => {
+        const countryName = row.dimensionValues[1].value,
+          views = row.metricValues[2].value,
+          color = countryName.charCodeAt(0) % 2 === 0 ? "#007bff" : "#ff073a",
+          latLng = getCountryCoordinates(countryName);
+        if (latLng) {
+          L.circleMarker(latLng, {
+            radius: Math.sqrt(views) / 2,
+            fillColor: color,
+            color: color,
+            weight: 1,
+            fillOpacity: 0.8
+          }).addTo(countryMapInstance).bindPopup(`${countryName}: ${views} views`);
+        }
+      });
+    }
+
+    function getCountryCoordinates(country) {
+      const countryCoordinates = {
+        "United States": [37.0902, -95.7129],
+        "India": [20.5937, 78.9629],
+        "Brazil": [-14.2350, -51.9253]
+      };
+      return countryCoordinates[country] || null;
+    }
+
+    async function fetchUserInfo() {
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        alert("You are not logged in. Redirecting to login...");
+        window.location.href = '/login';
+        return;
+      }
+      try {
+        const response = await fetch('/api/user/profile', {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+        });
+        if (response.ok) {
+          const user = await response.json();
+          document.getElementById('user-name').innerText = user.name;
+          document.getElementById('sidebar-user-name').innerText = user.name;
+          if (user.is_admin) {
+            const adminSettingsElem = document.getElementById('adminSettings');
+            if (adminSettingsElem) { adminSettingsElem.style.display = 'block'; }
+          }
+          hideLoader();
+          document.getElementById('dashboard-container').style.display = 'flex';
+        } else {
+          alert("Failed to fetch user info. Please log in again.");
           window.location.href = '/login';
         }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+        alert("An error occurred: " + error.message);
+        window.location.href = '/login';
       }
-      function logout() {
-        localStorage.removeItem('jwtToken');
-        alert("Logging out...");
-        window.location.href = "/login";
-      }
-  
-      // Sidebar Navigation
-      document.getElementById('nav-home').addEventListener('click', function(e) {
-        e.preventDefault();
-        setActiveSidebarLink('nav-home');
-        switchSection('home');
-      });
-      document.getElementById('nav-integrations').addEventListener('click', function(e) {
-        e.preventDefault();
-        setActiveSidebarLink('nav-integrations');
-        switchSection('integrations');
-      });
-      document.getElementById('nav-analytics').addEventListener('click', function(e) {
-        e.preventDefault();
-        setActiveSidebarLink('nav-analytics');
-        switchSection('analytics');
-      });
-      document.getElementById('nav-calendar').addEventListener('click', function(e) {
-        e.preventDefault();
-        setActiveSidebarLink('nav-calendar');
-        switchSection('calendar');
-      });
-      function setActiveSidebarLink(linkId) {
-        document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
-        document.getElementById(linkId).classList.add('active');
-      }
-      function connectIntegration(integration) {
-        alert("Connecting to " + integration + " is under construction.");
-      }
-  
-      // Section Switching
-      function switchSection(sectionId) {
-        currentSection = sectionId;
-        document.getElementById('headerSection').style.display = 'none';
-        document.getElementById('additionalSection').innerHTML = '';
-        document.getElementById('charts-section').style.display = 'none';
-  
-        if (sectionId === 'home') {
-          document.getElementById('headerSection').style.display = 'block';
-          document.getElementById('charts-section').style.display = 'block';
-          fetchAnalyticsData();
-        } else if (sectionId === 'integrations') {
-          document.getElementById('additionalSection').innerHTML = `
-            <div class="row">
-              <div class="col-md-4 mb-4">
-                <div class="card">
-                  <div class="card-body">
-                    <i class="fas fa-chart-line icon"></i>
-                    <h5 class="card-title">Google Analytics</h5>
-                    <p class="card-text">View and analyze your website traffic.</p>
-                    <button class="btn btn-connect" onclick="window.location.href='/auth/google'">Connect</button>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-4 mb-4">
-                <div class="card">
-                  <div class="card-body">
-                    <i class="fab fa-google icon"></i>
-                    <h5 class="card-title">Google Calendar</h5>
-                    <p class="card-text">Manage your Google Calendar events.</p>
-                    <button class="btn btn-connect" onclick="window.location.href='/auth/google-calendar'">Connect</button>
-                  </div>
-                </div>
+    }
+
+    // Navigation Events
+    document.getElementById('nav-dashboard').addEventListener('click', function (e) {
+      e.preventDefault();
+      setActiveSidebarLink('nav-dashboard');
+      switchSection('dashboard');
+    });
+    document.getElementById('nav-integration').addEventListener('click', function (e) {
+      e.preventDefault();
+      setActiveSidebarLink('nav-integration');
+      switchSection('integrations');
+    });
+    document.getElementById('nav-analytics').addEventListener('click', function (e) {
+      e.preventDefault();
+      setActiveSidebarLink('nav-analytics');
+      switchSection('analytics');
+    });
+    document.getElementById('nav-calendar').addEventListener('click', function (e) {
+      e.preventDefault();
+      setActiveSidebarLink('nav-calendar');
+      switchSection('calendar');
+    });
+    document.getElementById('nav-business-profile').addEventListener('click', function (e) {
+      e.preventDefault();
+      setActiveSidebarLink('nav-business-profile');
+      switchSection('businessProfile');
+    });
+    document.getElementById('nav-settings').addEventListener('click', function (e) {
+      e.preventDefault();
+      setActiveSidebarLink('nav-settings');
+      switchSection('settings');
+    });
+    function setActiveSidebarLink(linkId) {
+      document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
+      document.getElementById(linkId).classList.add('active');
+    }
+    function switchSection(sectionId) {
+      currentSection = sectionId;
+      document.getElementById('headerSection').style.display = 'none';
+      document.getElementById('additionalSection').innerHTML = '';
+      document.getElementById('charts-section').style.display = 'none';
+      document.getElementById('analyticsTableSection').style.display = 'none';
+      if (sectionId === 'dashboard') {
+        document.getElementById('headerSection').style.display = 'block';
+        document.getElementById('charts-section').style.display = 'block';
+        fetchAnalyticsData();
+      } else if (sectionId === 'integrations') {
+        document.getElementById('additionalSection').innerHTML = `
+          <div class="row">
+            <div class="col-md-4 mb-4">
+              <div class="card" style="background-color: #fff; border: 1px solid #e0e0e0; border-radius: 16px; padding: 40px; ">
+                <img src="/static/images/google-analytics.png" alt="Google Analytics" style="width: 130px; margin-bottom: 10px;">
+                <h5 style="font-weight: bold; color: #000;">Google Analytics</h5>
+                <p style="font-size: 0.9rem; color: #555;">View and analyse your website traffic.</p>
+                <button class="btn btn-primary" id="gaConnectBtn" onclick="window.location.href='/auth/google'">Connect</button>
               </div>
             </div>
-          `;
-        } else if (sectionId === 'analytics') {
-          addFilterIcons();
-          document.getElementById('additionalSection').insertAdjacentHTML('beforeend', `
-            <div class="card table-card mb-4">
+            <div class="col-md-4 mb-4">
+              <div class="card" style="background-color: #fff; border: 1px solid #e0e0e0; border-radius: 16px; padding: 40px; ">
+                <img src="/static/images/google-calendar.png" alt="Google Calendar" style="width: 150px; margin-bottom: 10px;">
+                <h5 style="font-weight: bold; color: #000;">Google Calendar</h5>
+                <p style="font-size: 0.9rem; color: #555;">Manage your calendar events.</p>
+                <button class="btn btn-primary" id="gcConnectBtn" onclick="window.location.href='/auth/google-calendar'">Connect</button>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="card" style="background-color: #fff; border: 1px solid #e0e0e0; border-radius: 16px; padding: 40px; ">
+                <img src="/static/images/google-business-profile.png" alt="Google Business Profile" style="width: 240px; margin-bottom: 10px;">
+                <h5 style="font-weight: bold; color: #000;">Google Business Profile</h5>
+                <p style="font-size: 0.9rem; color: #555;">All your business data here.</p>
+                <button class="btn btn-primary" id="gbpConnectBtn" onclick="window.location.href='/google-business-profile'">Connect</button>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (sectionId === 'analytics') {
+        document.getElementById('charts-section').style.display = 'block';
+        document.getElementById('analyticsTableSection').style.display = 'block';
+        document.getElementById('analyticsTableSection').innerHTML = `
+          <div class="card table-card mb-4">
+            <div class="d-flex justify-content-between align-items-center">
               <h3>Detailed User Data</h3>
-              <table id="data-table">
-                <thead>
-                  <tr>
-                    <th>Select</th>
-                    <th>Page Path</th>
-                    <th>Views</th>
-                    <th>Active Users</th>
-                    <th>Views per Active User</th>
-                    <th>Avg. Engagement Time</th>
-                    <th>Event Count</th>
-                    <th>Key Events</th>
-                    <th>Total Revenue</th>
-                    <th>Bounce Rate</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-              <div class="table-controls">
-                <button id="downloadExcel" class="filter-btn">Download Excel</button>
-                <button id="shareTable" class="filter-btn">Share Table</button>
-              </div>
-              <div class="pagination">
-                <button id="prevPage" class="pagination-btn" disabled>Previous</button>
-                <span id="pageInfo">Page 1</span>
-                <button id="nextPage" class="pagination-btn">Next</button>
+              <div class="filter-icons">
+                <i class="fa-regular fa-calendar" id="dateFilterIcon" title="Date Filter"></i>
+                <i class="fa-solid fa-sliders" id="otherFilterIcon" title="Other Filters"></i>
               </div>
             </div>
-          `);
-          // Attach event listeners for the dynamically added buttons:
-          document.getElementById('downloadExcel').addEventListener('click', downloadExcel);
-          document.getElementById('shareTable').addEventListener('click', shareTable);
-          document.getElementById('prevPage').addEventListener('click', function() {
-            if (currentPage > 1) { currentPage--; displayTableData(); }
-          });
-          document.getElementById('nextPage').addEventListener('click', function() {
-            if (currentPage < Math.ceil(aggregateTableData(filteredData).length / rowsPerPage)) { currentPage++; displayTableData(); }
-          });
-          document.getElementById('charts-section').style.display = 'block';
-          fetchAnalyticsData();
-        } else if (sectionId === 'calendar') {
-          document.getElementById('additionalSection').innerHTML = `
-            <div class="row">
-              <div class="col-md-9">
-                <div id="calendarHeader" class="d-flex justify-content-between align-items-center mb-2">
-                  <div id="calendarTitle" style="font-size:1.5rem; font-weight:bold;"></div>
-                  <div>
-                    <button class="btn btn-outline-secondary" id="prevBtn">&lt;</button>
-                    <button class="btn btn-outline-secondary" id="todayBtn">Today</button>
-                    <button class="btn btn-outline-secondary" id="nextBtn">&gt;</button>
-                    <select id="viewSelect" class="form-select d-inline-block" style="width: auto; margin-left: 10px;">
-                      <option value="dayGridMonth">Month</option>
-                      <option value="timeGridWeek">Week</option>
-                      <option value="timeGridDay">Day</option>
-                    </select>
-                    <button class="btn btn-primary" id="addEventBtn" style="margin-left:10px;">+ New</button>
+            <table id="data-table">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" onclick="toggleSelectAll(this)"></th>
+                  <th>Page Path</th>
+                  <th>Views</th>
+                  <th>Active Users</th>
+                  <th>Views per Active User</th>
+                  <th>Avg. Engagement Time</th>
+                  <th>Event Count</th>
+                  <th>Key Events</th>
+                  <th>Total Revenue</th>
+                  <th>Bounce Rate</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <div class="pagination">
+              <button id="prevPage" class="pagination-btn" disabled>&laquo;</button>
+              <span id="pageInfo">Page 1 of 1 results</span>
+              <button id="nextPage" class="pagination-btn">&raquo;</button>
+            </div>
+            <div class="action-buttons">
+              <button id="exportBtn" class="btn btn-primary">
+                <i class="fas fa-download"></i> Export
+              </button>
+              <button id="shareBtn" class="btn btn-primary">
+                <i class="fas fa-share-alt"></i> Share
+              </button>
+            </div>
+            
+          </div>
+        `;
+        document.getElementById('dateFilterIcon').addEventListener('click', () =>
+          new bootstrap.Modal(document.getElementById('dateFilterModal')).show()
+        );
+        document.getElementById('otherFilterIcon').addEventListener('click', () =>
+          new bootstrap.Modal(document.getElementById('otherFilterModal')).show()
+        );
+        document.getElementById('exportBtn').addEventListener('click', downloadExcel);
+        document.getElementById('shareBtn').addEventListener('click', shareTable);
+        document.getElementById('prevPage').addEventListener('click', function () {
+          if (currentPage > 1) { currentPage--; displayTableData(); }
+        });
+        document.getElementById('nextPage').addEventListener('click', function () {
+          if (currentPage < Math.ceil(aggregateTableData(filteredData).length / rowsPerPage)) { currentPage++; displayTableData(); }
+        });
+        fetchAnalyticsData();
+      } else if (sectionId === 'calendar') {
+        document.getElementById('additionalSection').innerHTML = `
+          <div class="row">
+            <div class="col-md-9">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 id="calendarTitle" class="mb-0" style="font-weight:600;"></h2>
+                <div class="d-flex align-items-center">
+                  <button class="btn btn-outline-secondary me-1" id="prevBtn">&laquo;</button>
+                  <button class="btn btn-outline-secondary me-1" id="todayBtn">Today</button>
+                  <button class="btn btn-outline-secondary me-2" id="nextBtn">&raquo;</button>
+                  <select id="viewSelect" class="form-select d-inline-block me-2" style="width: auto;">
+                    <option value="dayGridMonth">Month</option>
+                    <option value="timeGridWeek">Week</option>
+                    <option value="timeGridDay">Day</option>
+                  </select>
+                  <button class="btn btn-primary" id="addEventBtn">+ New Event</button>
+                </div>
+              </div>
+              <div id="calendarView" style="min-height: 500px;"></div>
+            </div>
+            <div class="col-md-3">
+              <div class="card mb-4 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <div class="d-flex align-items-center">
+                    <button id="miniPrev" class="btn btn-sm btn-outline-secondary me-1">&laquo;</button>
+                    <span class="mini-month" style="min-width: 120px; text-align: center;"></span>
+                    <button id="miniNext" class="btn btn-sm btn-outline-secondary ms-1">&raquo;</button>
                   </div>
                 </div>
-                <div id="calendarView" style="margin-bottom:20px;"></div>
+                <div class="card-body p-2">
+                  <div id="miniCalendar"></div>
+                </div>
               </div>
-              <div class="col-md-3">
-                <div id="miniCalendar" style="margin-bottom:20px;"></div>
-                <h5>Your Events</h5>
-                <div id="eventList" style="max-height: 600px; overflow-y: auto; border-left: 1px solid #ddd; padding-left: 10px; margin-top:20px;"></div>
+              <div class="card shadow-sm">
+                <div class="card-header">
+                  <h5 class="mb-0">Upcoming Events</h5>
+                </div>
+                <div class="card-body p-2" id="eventList" style="max-height: 500px; overflow-y: auto;"></div>
               </div>
             </div>
-          `;
-          initCalendar();
-          initMiniCalendar();
-          initCalendarHeader();
-          document.getElementById('addEventBtn').addEventListener('click', function () {
-            new bootstrap.Modal(document.getElementById('addEventModal')).show();
-          });
+          </div>
+        `;
+        initCalendar();
+        initCalendarHeader();
+        initMiniCalendar();
+        document.getElementById('addEventBtn').addEventListener('click', function () {
+          new bootstrap.Modal(document.getElementById('addTaskModal')).show();
+        });
+        loadEventList();
+        renderTaskList();
+      } else if (sectionId === 'businessProfile') {
+        document.getElementById('businessProfileSection').style.display = 'block';
+      }
+    }
+
+    function initMiniCalendar() {
+      const miniEl = document.getElementById('miniCalendar');
+      if (!miniEl) return;
+      const miniCalendar = new FullCalendar.Calendar(miniEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: false,
+        dayHeaderFormat: { weekday: 'short' },
+        height: 302,
+        selectable: true,
+        fixedWeekCount: false,
+        dateClick: function (info) {
+          window.myCalendar.gotoDate(info.date);
+          updateCalendarHeader();
           loadEventList();
         }
-      }
-  
-      // Initialize on DOM Load
-      document.addEventListener("DOMContentLoaded", () => {
-        if (!localStorage.getItem('useGoogleCalendar')) {
-          localStorage.setItem('useGoogleCalendar', 'true');
-        }
-        fetchUserInfo();
-        switchSection('home');
       });
-    </script>
+      miniCalendar.render();
+      const updateMiniHeader = () => {
+        const miniMonthElem = document.querySelector('.mini-month');
+        if (miniMonthElem) { miniMonthElem.innerText = miniCalendar.view.title; }
+      };
+      updateMiniHeader();
+      document.getElementById('miniPrev').addEventListener('click', function () {
+        miniCalendar.prev();
+        updateMiniHeader();
+        loadEventList();
+      });
+      document.getElementById('miniNext').addEventListener('click', function () {
+        miniCalendar.next();
+        updateMiniHeader();
+        loadEventList();
+      });
+    }
+
+    async function fetchGoogleCalendarTasks() {
+      const token = localStorage.getItem('jwtToken');
+      try {
+        const response = await fetch('/google-calendar/events', {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const events = await response.json();
+        return events.map(event => ({
+          id: event.id,
+          title: event.summary,
+          subtitle: event.start.dateTime || event.start.date || '',
+          source: 'google'
+        }));
+      } catch (error) {
+        console.error("Error fetching Google Calendar tasks:", error);
+        return [];
+      }
+    }
+
+    const manualTasks = [];
+
+    async function renderTaskList() {
+      const googleTasks = await fetchGoogleCalendarTasks();
+      const allTasks = [...googleTasks, ...manualTasks];
+      const container = document.querySelector('.task-list-container');
+      if (!container) return;
+      container.innerHTML = '';
+      allTasks.forEach(task => {
+        const taskItem = document.createElement('div');
+        taskItem.classList.add('task-list-item');
+        taskItem.innerHTML = `
+          <div class="task-icon"><i class="fas ${task.source === 'google' ? 'fa-calendar-alt' : 'fa-check-circle'}"></i></div>
+          <div class="task-content">
+            <p class="task-title">${task.title}</p>
+            <p class="task-subtitle">${task.subtitle}</p>
+          </div>
+          <div class="task-options"><i class="fas fa-ellipsis-h"></i></div>
+        `;
+        container.appendChild(taskItem);
+      });
+    }
+
+    document.getElementById('fetchBusinessProfileBtn').addEventListener('click', async function () {
+      const token = localStorage.getItem('jwtToken');
+      try {
+        const response = await fetch('/google-business-profile', {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        const container = document.getElementById('businessProfileData');
+        if (response.ok) {
+          container.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        } else {
+          container.innerHTML = `<p class="text-danger">Error: ${data.error}</p>`;
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById('businessProfileData').innerHTML = `<p class="text-danger">An error occurred while fetching data.</p>`;
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!localStorage.getItem('useGoogleCalendar')) {
+        localStorage.setItem('useGoogleCalendar', 'true');
+      }
+      fetchUserInfo();
+      switchSection('dashboard');
+    });
+
+    function logout() {
+      localStorage.removeItem('jwtToken');
+      window.location.href = '/login';
+    }
+  </script>
 </body>
+
 </html>
