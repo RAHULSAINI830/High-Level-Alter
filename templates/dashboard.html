@@ -258,28 +258,32 @@
     }
 
     #data-table {
-  width: 100%;
-  border-collapse: separate; /* Use separate to allow rounded corners */
-  border-spacing: 0;         /* Remove any spacing between cells */
-  background-color: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;       /* Outer rounded corners */
-  overflow: hidden;      
-  min-height: 900px;    /* Ensure the rounding is visible */
-}
+      width: 100%;
+      border-collapse: separate;
+      /* Use separate to allow rounded corners */
+      border-spacing: 0;
+      /* Remove any spacing between cells */
+      background-color: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      /* Outer rounded corners */
+      overflow: hidden;
+      min-height: 900px;
+      /* Ensure the rounding is visible */
+    }
 
-#data-table th,
-#data-table td {
-  padding: 12px 15px;
-  text-align: center;
-  /* Apply only horizontal borders */
-  border-bottom: 1px solid #e0e0e0;
-}
+    #data-table th,
+    #data-table td {
+      padding: 12px 15px;
+      text-align: center;
+      /* Apply only horizontal borders */
+      border-bottom: 1px solid #e0e0e0;
+    }
 
-/* Make the header row's bottom border a bit thicker */
-#data-table thead th {
-  border-bottom: 2px solid #e0e0e0;
-}
+    /* Make the header row's bottom border a bit thicker */
+    #data-table thead th {
+      border-bottom: 2px solid #e0e0e0;
+    }
 
 
 
@@ -384,6 +388,12 @@
       left: 5px;
       font-size: 0.9rem;
       color: #7f7f7f;
+    }
+
+    #activeFiltersLabel {
+      margin-bottom: 10px;
+      font-style: italic;
+      color: #555;
     }
 
     .fc .fc-daygrid-day-frame {
@@ -842,6 +852,9 @@
               <i class="fas fa-filter" id="otherFilterIcon" title="Other Filters"></i>
             </div>
           </div>
+          <div id="activeFiltersLabel"></div>
+
+
           <table id="data-table">
             <thead>
               <tr>
@@ -1113,6 +1126,34 @@
       bootstrap.Modal.getInstance(document.getElementById('dateFilterModal'))?.hide();
       bootstrap.Modal.getInstance(document.getElementById('otherFilterModal'))?.hide();
     }
+    const activeFiltersElem = document.getElementById('activeFiltersLabel');
+    if (activeFiltersElem) {
+      activeFiltersElem.innerText = activeFilterQuery;
+    }
+    function addFilterIcons() {
+      const container = document.getElementById('additionalSection');
+      if (!container) return;
+      container.insertAdjacentHTML('afterbegin', `
+          <div class="d-flex justify-content-end filter-icons">
+            <i class="fas fa-calendar-alt" id="dateFilterIcon" title="Date Filter"></i>
+            <i class="fas fa-filter" id="otherFilterIcon" title="Other Filters"></i>
+          </div>
+          <div id="activeFiltersLabel"></div>
+        `);
+      document.getElementById('dateFilterIcon').addEventListener('click', () =>
+        new bootstrap.Modal(document.getElementById('dateFilterModal')).show()
+      );
+      document.getElementById('otherFilterIcon').addEventListener('click', () =>
+        new bootstrap.Modal(document.getElementById('otherFilterModal')).show()
+      );
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+      // Generate a random seed string
+      const randomSeed = Math.random().toString(36).substring(2);
+      // Update the avatar image source to the DiceBear endpoint with the random seed
+      document.getElementById('avatar').src = `https://api.dicebear.com/6.x/identicon/svg?seed=${randomSeed}`;
+    });
+
 
     function applyQuickDateFilter(option) {
       document.querySelectorAll('#dateFilterModal .duration-section .btn').forEach(btn => {
@@ -1668,6 +1709,8 @@
                 <i class="fa-solid fa-sliders" id="otherFilterIcon" title="Other Filters"></i>
               </div>
             </div>
+            <div id="activeFiltersLabel"></div>
+
             <table id="data-table">
               <thead>
                 <tr>
