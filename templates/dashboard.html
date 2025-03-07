@@ -258,32 +258,28 @@
     }
 
     #data-table {
-  width: 100%;
-  border-collapse: separate; /* Use separate to allow rounded corners */
-  border-spacing: 0;         /* Remove any spacing between cells */
-  background-color: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;       /* Outer rounded corners */
-  overflow: hidden;      
-  min-height: 900px;    /* Ensure the rounding is visible */
-}
+      width: 100%;
+      border-collapse: separate;
+      /* Allow outer rounded corners */
+      border-spacing: 0;
+      /* Remove spacing between cells */
+      background-color: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      overflow: hidden;
+      min-height: 900px;
+    }
 
-#data-table th,
-#data-table td {
-  padding: 12px 15px;
-  text-align: center;
-  /* Apply only horizontal borders */
-  border-bottom: 1px solid #e0e0e0;
-}
+    #data-table th,
+    #data-table td {
+      padding: 12px 15px;
+      text-align: left;
+      /* Only horizontal (row) lines */
+      border-bottom: 1px solid #e0e0e0;
+    }
 
-/* Make the header row's bottom border a bit thicker */
-#data-table thead th {
-  border-bottom: 2px solid #e0e0e0;
-}
-
-
-
-    #data-table th {
+    #data-table thead th {
+      border-bottom: 2px solid #e0e0e0;
       background-color: #c1d2e3;
       font-weight: bold;
       color: #333;
@@ -300,7 +296,6 @@
 
     .pagination-btn {
       background-color: #ffffff;
-
       border: none;
       border-radius: 5px;
       padding: 8px 12px;
@@ -384,6 +379,12 @@
       left: 5px;
       font-size: 0.9rem;
       color: #7f7f7f;
+    }
+
+    #activeFiltersLabel {
+      margin-bottom: 10px;
+      font-style: italic;
+      color: #555;
     }
 
     .fc .fc-daygrid-day-frame {
@@ -644,7 +645,6 @@
       border-radius: 10px;
     }
 
-    /* Modal Header with small gray title "date filter" */
     #dateFilterModal .modal-header {
       border-bottom: none;
       padding: 1rem;
@@ -656,7 +656,6 @@
       margin: 0;
     }
 
-    /* Select Duration Section */
     #dateFilterModal .duration-section {
       margin-bottom: 1rem;
     }
@@ -674,14 +673,12 @@
       padding-block-start: 10px;
     }
 
-    /* Active quick button style */
     #dateFilterModal .duration-section .active-btn {
       background-color: #0d6efd;
       color: #fff;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
-    /* Select Your Custom Date Section */
     #dateFilterModal .custom-date-section {
       margin-bottom: 1rem;
     }
@@ -720,7 +717,6 @@
       padding: 0.5rem;
     }
 
-    /* Modal Footer */
     #dateFilterModal .modal-footer {
       border-top: none;
       justify-content: flex-end;
@@ -773,7 +769,8 @@
           <li><a href="{{ url_for('business_profile_page') }}" id="nav-business-profile"><i class="fas fa-building"></i>
               Business Profile</a></li>
           <li><a href="#" id="nav-calendar"><i class="fas fa-comments"></i> Calendar</a></li>
-          <li><a href="#" id="nav-settings"><i class="fas fa-graduation-cap"></i> Settings</a></li>
+          <li><a href="{{ url_for('settings_page') }}" id="nav-settings"><i class="fas fa-graduation-cap"></i>
+              Settings</a></li>
         </ul>
       </div>
       <div class="sidebar-divider"></div>
@@ -842,6 +839,7 @@
               <i class="fas fa-filter" id="otherFilterIcon" title="Other Filters"></i>
             </div>
           </div>
+          <div id="activeFiltersLabel"></div>
           <table id="data-table">
             <thead>
               <tr>
@@ -859,6 +857,11 @@
             </thead>
             <tbody></tbody>
           </table>
+          <div class="pagination">
+            <button id="prevPage" class="pagination-btn" disabled>&laquo;</button>
+            <span id="pageInfo">Page 1 of 1 results</span>
+            <button id="nextPage" class="pagination-btn">&raquo;</button>
+          </div>
           <div class="action-buttons">
             <button id="exportBtn" class="btn btn-primary">
               <i class="fas fa-download"></i> Export
@@ -866,11 +869,6 @@
             <button id="shareBtn" class="btn btn-primary">
               <i class="fas fa-share-alt"></i> Share
             </button>
-          </div>
-          <div class="pagination">
-            <button id="prevPage" class="pagination-btn" disabled>&laquo;</button>
-            <span id="pageInfo">Page 1 of 1 results</span>
-            <button id="nextPage" class="pagination-btn">&raquo;</button>
           </div>
         </div>
       </div>
@@ -1153,7 +1151,7 @@
     }
     function applyCustomDateFilter() { applyFilters(); }
 
-    // Calendar Functions (unchanged)
+    // Calendar Functions
     function initCalendar() {
       const calendarEl = document.getElementById('calendarView');
       const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -1362,8 +1360,6 @@
         paginatedData = aggregatedData.slice(start, end);
       paginatedData.forEach(row => {
         const path = row.dimensionValues[0].value || 'Unknown';
-        // Mapping the metrics as per:
-        // [Active Users, Bounce Rate, Views, Views per Active User, Event Count, Avg. Engagement Time, New Users, Total Revenue]
         const views = row.metricValues[2].value,
           activeUsers = row.metricValues[0].value,
           viewsPerActive = row.metricValues[3].value,
@@ -1565,10 +1561,6 @@
           const user = await response.json();
           document.getElementById('user-name').innerText = user.name;
           document.getElementById('sidebar-user-name').innerText = user.name;
-          if (user.is_admin) {
-            const adminSettingsElem = document.getElementById('adminSettings');
-            if (adminSettingsElem) { adminSettingsElem.style.display = 'block'; }
-          }
           hideLoader();
           document.getElementById('dashboard-container').style.display = 'flex';
         } else {
@@ -1608,11 +1600,7 @@
       setActiveSidebarLink('nav-business-profile');
       switchSection('businessProfile');
     });
-    document.getElementById('nav-settings').addEventListener('click', function (e) {
-      e.preventDefault();
-      setActiveSidebarLink('nav-settings');
-      switchSection('settings');
-    });
+    
     function setActiveSidebarLink(linkId) {
       document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
       document.getElementById(linkId).classList.add('active');
@@ -1631,7 +1619,7 @@
         document.getElementById('additionalSection').innerHTML = `
           <div class="row">
             <div class="col-md-4 mb-4">
-              <div class="card" style="background-color: #fff; border: 1px solid #e0e0e0; border-radius: 16px; padding: 40px; ">
+              <div class="card" style="background-color: #fff; border: 1px solid #e0e0e0; border-radius: 16px; padding: 40px; text-align: center;">
                 <img src="/static/images/google-analytics.png" alt="Google Analytics" style="width: 130px; margin-bottom: 10px;">
                 <h5 style="font-weight: bold; color: #000;">Google Analytics</h5>
                 <p style="font-size: 0.9rem; color: #555;">View and analyse your website traffic.</p>
@@ -1639,7 +1627,7 @@
               </div>
             </div>
             <div class="col-md-4 mb-4">
-              <div class="card" style="background-color: #fff; border: 1px solid #e0e0e0; border-radius: 16px; padding: 40px; ">
+              <div class="card" style="background-color: #fff; border: 1px solid #e0e0e0; border-radius: 16px; padding: 40px; text-align: center;">
                 <img src="/static/images/google-calendar.png" alt="Google Calendar" style="width: 150px; margin-bottom: 10px;">
                 <h5 style="font-weight: bold; color: #000;">Google Calendar</h5>
                 <p style="font-size: 0.9rem; color: #555;">Manage your calendar events.</p>
@@ -1647,7 +1635,7 @@
               </div>
             </div>
             <div class="col-md-4 mb-4">
-              <div class="card" style="background-color: #fff; border: 1px solid #e0e0e0; border-radius: 16px; padding: 40px; ">
+              <div class="card" style="background-color: #fff; border: 1px solid #e0e0e0; border-radius: 16px; padding: 40px; text-align: center;">
                 <img src="/static/images/google-business-profile.png" alt="Google Business Profile" style="width: 240px; margin-bottom: 10px;">
                 <h5 style="font-weight: bold; color: #000;">Google Business Profile</h5>
                 <p style="font-size: 0.9rem; color: #555;">All your business data here.</p>
@@ -1668,6 +1656,7 @@
                 <i class="fa-solid fa-sliders" id="otherFilterIcon" title="Other Filters"></i>
               </div>
             </div>
+            <div id="activeFiltersLabel"></div>
             <table id="data-table">
               <thead>
                 <tr>
@@ -1698,7 +1687,6 @@
                 <i class="fas fa-share-alt"></i> Share
               </button>
             </div>
-            
           </div>
         `;
         document.getElementById('dateFilterIcon').addEventListener('click', () =>
@@ -1768,6 +1756,15 @@
         renderTaskList();
       } else if (sectionId === 'businessProfile') {
         document.getElementById('businessProfileSection').style.display = 'block';
+      } else if (sectionId === 'settings') {
+        // Here you could load settings content via AJAX
+        // For example, fetch '/settings' and then inject it into the main content area:
+        fetch('/settings')
+          .then(response => response.text())
+          .then(html => {
+            document.getElementById('additionalSection').innerHTML = html;
+          })
+          .catch(error => console.error('Error loading settings:', error));
       }
     }
 
