@@ -19,15 +19,27 @@ import json
 
 # ================= Configuration =================
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+# File for Google Analytics OAuth credentials
 CLIENT_SECRET_FILE = 'credentials.json'
 SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
 GA4_PROPERTY_ID = '376596938'
+
 
 CALENDAR_CREDENTIALS_FILE = 'calendar_credentials.json'
 GOOGLE_CALENDAR_SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 SERVICE_ACCOUNT_KEY_PATH = 'service-account-key.json'
 GBP_ACCOUNT_ID = os.getenv('2018567491275164845')
+
+
+# Separate file for Google Calendar OAuth credentials
+CALENDAR_CREDENTIALS_FILE = 'calendar_credentials.json'
+GOOGLE_CALENDAR_SCOPES = ['https://www.googleapis.com/auth/calendar']
+
+# Service Account for Google Business Profile (Optional)
+SERVICE_ACCOUNT_KEY_PATH = 'service-account-key.json'
+GBP_ACCOUNT_ID = os.getenv('GBP_ACCOUNT_ID')
+
 
 app = Flask(__name__)
 CORS(app)
@@ -273,6 +285,9 @@ def auth_google():
     try:
         redirect_uri = url_for('auth_callback', _external=True)
         print("Generated redirect URI:", redirect_uri)
+
+        print("Generated redirect URI:", redirect_uri)  # Debug print
+
         flow = Flow.from_client_secrets_file(CLIENT_SECRET_FILE, scopes=SCOPES, redirect_uri=redirect_uri)
     except FileNotFoundError:
         return "OAuth credentials file not found. Please add credentials.json to your project.", 500
@@ -283,11 +298,22 @@ def auth_google():
 def auth_callback():
     redirect_uri = url_for('auth_callback', _external=True)
     print("Generated redirect URI in callback:", redirect_uri)
+
     if 'error' in request.args:
         error = request.args.get("error")
         return f"Error returned in callback: {error}"
     if 'code' not in request.args:
         return "Missing code parameter in response. This likely means the OAuth flow did not complete successfully."
+
+    
+    # Check for errors in the query string.
+    if 'error' in request.args:
+        error = request.args.get("error")
+        return f"Error returned in callback: {error}"
+    
+    if 'code' not in request.args:
+        return "Missing code parameter in response. This likely means the OAuth flow did not complete successfully."
+
     flow = Flow.from_client_secrets_file(CLIENT_SECRET_FILE, scopes=SCOPES, redirect_uri=redirect_uri)
     flow.fetch_token(authorization_response=request.url)
     credentials = flow.credentials
@@ -393,7 +419,7 @@ def fetch_analytics_data(current_user):
         print(f"Error fetching Google Analytics data: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-# ---------------- Google Business Profile Endpoints ----------------
+
 @app.route('/google-business-profile', methods=['GET'])
 def google_business_profile():
     if bp_service is None or not GBP_ACCOUNT_ID:
@@ -406,6 +432,7 @@ def google_business_profile():
     except Exception as e:
         print("Error fetching Google Business Profile data:", e)
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/admin/chatbot', methods=['GET', 'POST'])
 @token_required
@@ -521,6 +548,7 @@ def send_performance_report(current_user):
     except Exception as e:
         print("Error sending performance report:", e)
         return jsonify({'error': str(e)}), 500
+
 
 # ---------------- OTP and Password Reset Endpoints ----------------
 @app.route('/auth/verify-otp', methods=['POST'])
@@ -804,6 +832,8 @@ def auth_google_calendar():
         )
     except FileNotFoundError:
         return "OAuth credentials file not found. Please add calendar_credentials.json to your project.", 500
+
+
     authorization_url, state = flow.authorization_url(prompt='consent', access_type='offline')
     session['google_calendar_state'] = state
     return redirect(authorization_url)
