@@ -1,78 +1,717 @@
 body {
-    font-family: 'Arial, sans-serif';
-    background-color: #f3f3f3;
-    margin: 0;
-    padding: 0;
+    background-color: #f1f4f8;
+    font-family: 'Arial', sans-serif;
+    font-size: 1.05rem;
+  }
+
+  .dashboard-container {
     display: flex;
+    min-height: 100vh;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 350px;
+    background-color: #0b1a02;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+
+  .sidebar .logo {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .sidebar .logo img {
+    width: 210px;
+    height: auto;
+  }
+
+  .user-profile {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 10px;
+    color: #000;
+    background-color: #bfe9fb;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+  }
+
+  .user-profile .avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+    border: 2px solid #fff;
+  }
+
+  .user-profile .user-info .name {
+    font-weight: 600;
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  .nav-menu {
+    flex: 1;
+    margin-top: 1rem;
+  }
+
+  .nav-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .nav-menu li {
+    margin-bottom: 10px;
+  }
+
+  .nav-menu li a {
+    display: flex;
+    align-items: center;
+    font-size: 1.1rem;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background-color 0.2s, font-weight 0.2s;
+  }
+
+  .nav-menu li a i {
+    margin-right: 10px;
+    font-size: 1.1rem;
+  }
+
+  .nav-menu li a:hover {
+    background-color: #fff;
+    color: #000;
+  }
+
+  .nav-menu li a.active {
+    background-color: #fff;
+    color: #000;
+    font-weight: 600;
+  }
+
+  .sidebar-divider {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 1rem 0;
+  }
+
+  .logout-section a {
+    display: flex;
+    align-items: center;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background-color 0.2s, font-weight 0.2s;
+  }
+
+  .logout-section a i {
+    margin-right: 10px;
+  }
+
+  .logout-section a:hover {
+    background-color: #266b44;
+    font-weight: 600;
+  }
+
+  /* Main Content */
+  .content {
+    flex-grow: 1;
+    padding: 30px;
+    background-color: #fff;
+  }
+
+  #headerSection {
+    text-align: left;
+    margin-bottom: 30px;
+  }
+
+  #headerSection .home-heading {
+    display: inline-flex;
+    gap: 15px;
+    font-size: 2.5rem;
+    color: #ee5566;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  #additionalSection {
+    margin-bottom: 30px;
+  }
+
+  /* Loader */
+  #loader {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-}
+    z-index: 9999;
+    animation: fadeIn 0.5s ease-in-out;
+  }
 
-.form-container {
-    background-color: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
-    text-align: center;
-}
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
 
-h2 {
-    margin-bottom: 20px;
-    color: #333;
-}
+    to {
+      opacity: 1;
+    }
+  }
 
-label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    text-align: left;
-}
-
-input {
-    width: 95%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
-}
-
-small {
-    display: block;
-    margin-bottom: 15px;
-    font-size: 12px;
+  .loading-text {
+    margin-top: 20px;
+    font-size: 1.7rem;
     color: #555;
-    text-align: left;
-}
+    text-align: center;
+    animation: textFade 1.5s ease-in-out infinite;
+  }
 
-button {
+  @keyframes textFade {
+    0% {
+      opacity: 0.2;
+    }
+
+    50% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0.2;
+    }
+  }
+
+  /* Analytics Cards & Map – Uniform Card Style */
+  .card.chart-card,
+  .card.map-card,
+  .card.line-chart-card {
+    width: 32%;
+    height: 400px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .card-header {
+    border-bottom: 1px solid #eaeaea;
+    margin-bottom: 10px;
+  }
+
+  .card-title {
+    font-family: 'Arial', sans-serif;
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+
+  .filter-options select {
+    border: none;
+    background-color: transparent;
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  /* Table UI in Analytics Tab */
+  .table-card {
+    background-color: #fff;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    min-height: 500px;
+    margin-bottom: 20px;
+  }
+
+  #data-table {
     width: 100%;
-    padding: 10px;
-    background-color: #007bff;
+    border-collapse: separate;
+    /* Allow outer rounded corners */
+    border-spacing: 0;
+    /* Remove spacing between cells */
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    min-height: 900px;
+  }
+
+  #data-table th,
+  #data-table td {
+    padding: 12px 15px;
+    text-align: left;
+    /* Only horizontal (row) lines */
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  #data-table thead th {
+    border-bottom: 2px solid #e0e0e0;
+    background-color: #c1d2e3;
+    font-weight: bold;
+    color: #333;
+  }
+
+  /* Pagination and Action Buttons */
+  .pagination {
+    display: flex;
+    justify-content: right;
+    align-items: center;
+    margin-top: 15px;
+    gap: 10px;
+  }
+
+  .pagination-btn {
+    background-color: #ffffff;
     border: none;
     border-radius: 5px;
-    color: white;
-    font-size: 16px;
+    padding: 8px 12px;
     cursor: pointer;
-}
+  }
 
-button:hover {
-    background-color: #0056b3;
-}
+  .pagination-btn:disabled {
+    background-color: #ffffff;
+    cursor: not-allowed;
+  }
 
-p {
+  .action-buttons {
     margin-top: 15px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+  }
+
+  .action-buttons .btn {
+    background-color: #0055b0;
+    color: #fff;
+    border: none;
+    border-radius: 22px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  /* Analytics Table Card Header Filter Icons */
+  .table-card .filter-icons {
+    font-size: 2rem;
+    cursor: pointer;
+    color: #696969;
+  }
+
+  /* Canvas for charts */
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* FullCalendar Styles */
+  .fc .fc-daygrid-day-number {
+    color: #000 !important;
+  }
+
+  .fc .fc-daygrid-day {
+    height: 150px !important;
+    background-color: #fcfbfc;
+    border: 1px solid #eee;
+    box-sizing: border-box;
+    padding: 5px;
+  }
+
+  .fc .fc-col-header-cell {
+    border-bottom: 1px solid #ddd;
+    text-transform: uppercase;
+    font-weight: normal;
+    padding: 10px;
+    font-size: 1rem;
+    background-color: #fff;
+    color: #7f7f7f;
+  }
+
+  .fc .fc-col-header-cell-cushion {
+    padding: 0;
+  }
+
+  .fc-col-header-cell,
+  .fc-col-header-cell-cushion {
+    text-align: left !important;
+    color: #7f7f7f !important;
+    text-decoration: none !important;
+    font-weight: normal !important;
+    padding: 10px;
+  }
+
+  .fc .fc-daygrid-day-number {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    font-size: 0.9rem;
+    color: #7f7f7f;
+  }
+
+  #activeFiltersLabel {
+    margin-bottom: 10px;
+    font-style: italic;
     color: #555;
-}
+  }
 
-a {
-    color: #007bff;
-    text-decoration: none;
-}
+  .fc .fc-daygrid-day-frame {
+    padding: 10px;
+    position: relative;
+  }
 
-a:hover {
-    text-decoration: underline;
-}
+  .fc .fc-daygrid-event {
+    color: #000;
+    padding: 2px 4px;
+    font-size: 0.9rem;
+    border-radius: 3px;
+    margin-bottom: 2px;
+  }
+
+  @media (max-width: 768px) {
+    .fc .fc-daygrid-day {
+      height: 90px;
+    }
+
+    .fc .fc-col-header-cell {
+      font-size: 0.9rem;
+      padding: 8px;
+    }
+  }
+
+  /* Mini Calendar Styles */
+  #miniCalendar .fc {
+    background-color: #fff;
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  }
+
+  #miniCalendar,
+  #miniCalendar * {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  #miniCalendar .fc-daygrid-day,
+  #miniCalendar .fc-col-header-cell {
+    border: none !important;
+  }
+
+  #miniCalendar .fc-daygrid-day {
+    height: 40px !important;
+  }
+
+  #miniCalendar {
+    min-height: 200px !important;
+  }
+
+  #miniCalendar .fc-daygrid-day-frame {
+    padding: 4px !important;
+  }
+
+  #miniCalendar .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+    background-color: #ff9900 !important;
+    color: #fff !important;
+    border-radius: 50% !important;
+    width: 28px !important;
+    height: 28px !important;
+    display: inline-block !important;
+    text-align: center !important;
+    line-height: 28px !important;
+    font-weight: bold !important;
+  }
+
+  #miniCalendar .fc-col-header-cell-cushion {
+    border: none !important;
+    padding: 5px !important;
+  }
+
+  #miniCalendar .fc-daygrid-day-number {
+    font-size: 0.9rem !important;
+  }
+
+  .mini-header {
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .mini-header .mini-month {
+    flex: 1;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  /* Task Card */
+  .task-card {
+    display: flex;
+    align-items: center;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin: 4px 0;
+    max-width: 90%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: transform 0.5s, box-shadow 0.5s, max-width 0.5s;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .task-card:hover {
+    max-width: 100%;
+    transform: translateY(-8px) scaleX(1.05) scaleY(1.02);
+    z-index: 10;
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .task-card:hover .task-content {
+    white-space: normal;
+    overflow: visible;
+  }
+
+  .task-title {
+    font-weight: bold;
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+  }
+
+  .task-subtitle {
+    font-size: 0.9rem;
+    margin: 0;
+    color: #777;
+  }
+
+  .task-options {
+    margin-left: auto;
+    font-size: 1rem;
+    color: #999;
+    transition: color 0.2s;
+  }
+
+  .task-options:hover {
+    color: #555;
+  }
+
+  .card {
+    border-radius: 18px;
+  }
+
+  .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 10px 15px;
+    font-size: 1.1rem;
+  }
+
+  .card-body {
+    background-color: #fff;
+    font-size: 1rem;
+  }
+
+  #eventList .list-group {
+    margin-top: 10px;
+  }
+
+  #eventList .list-group-item {
+    cursor: pointer;
+    border: none;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+    font-size: 1rem;
+  }
+
+  #eventList .list-group-item:hover {
+    background-color: #f1f3f5;
+  }
+
+  .event-item {
+    padding: 8px 12px;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 1rem;
+  }
+
+  .event-item:last-child {
+    border-bottom: none;
+  }
+
+  #miniCalendar {
+    min-height: 200px;
+  }
+
+  /* Adding Task Modal */
+  #addTaskModal .modal-content {
+    border-radius: 10px;
+    width: 560px !important;
+  }
+
+  #addTaskModal .modal-header {
+    border-bottom: none;
+  }
+
+  #addTaskModal small {
+    color: gray;
+    font-size: 0.9rem;
+  }
+
+  #addTaskModal label {
+    font-size: 0.9rem;
+  }
+
+  #addTaskModal .form-control {
+    background-color: #f5f5f5;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+
+  /* Viewing Task Modal */
+  #viewTaskModal .modal-content {
+    border-radius: 10px;
+  }
+
+  #viewTaskModal .modal-header {
+    border-bottom: none;
+  }
+
+  #viewTaskModal small {
+    color: gray;
+    font-size: 0.9rem;
+  }
+
+  #viewTaskModal h5 {
+    font-weight: bold;
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  #viewTaskModal #detailDateRange {
+    margin: 0;
+    color: gray;
+    font-size: 0.9rem;
+  }
+
+  #viewTaskModal .form-control {
+    background-color: #f0f0f0;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+
+  /* Updated Date Filter Modal UI */
+  #dateFilterModal .modal-dialog {
+    max-width: 600px;
+  }
+
+  #dateFilterModal .modal-content {
+    border-radius: 10px;
+  }
+
+  #dateFilterModal .modal-header {
+    border-bottom: none;
+    padding: 1rem;
+  }
+
+  #dateFilterModal .modal-header small {
+    color: gray;
+    font-size: 2rem;
+    margin: 0;
+  }
+
+  #dateFilterModal .duration-section {
+    margin-bottom: 1rem;
+  }
+
+  #dateFilterModal .duration-section h6 {
+    color: #919191;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+  }
+
+  #dateFilterModal .duration-section .btn {
+    border-radius: 5px;
+    font-size: 1.3rem;
+    flex: 1;
+    padding-block-start: 10px;
+  }
+
+  #dateFilterModal .duration-section .active-btn {
+    background-color: #0d6efd;
+    color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  #dateFilterModal .custom-date-section {
+    margin-bottom: 1rem;
+  }
+
+  #dateFilterModal .custom-date-section h6 {
+    color: #919191;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+  }
+
+  #dateFilterModal .custom-date-section .date-input-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 1rem;
+  }
+
+  #dateFilterModal .custom-date-section .date-input-group .calendar-icon {
+    width: 30px;
+    height: 30px;
+    background-color: #e0e0e0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: #555;
+  }
+
+  #dateFilterModal .custom-date-section .date-input-group .form-control {
+    background-color: #f5f5f5;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    flex: 1;
+    padding: 0.5rem;
+  }
+
+  #dateFilterModal .modal-footer {
+    border-top: none;
+    justify-content: flex-end;
+    padding: 1rem;
+  }
+
+  #dateFilterModal .modal-footer .btn-primary {
+    border-radius: 13px;
+    padding: 0.75rem 3rem;
+    font-size: 1.2rem;
+  }
+
+  .btn-secondary {
+    border-radius: 13px;
+    padding: 0.75rem 3rem;
+    font-size: 1.2rem;
+  }
