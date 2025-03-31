@@ -16,6 +16,8 @@ from flask_cors import CORS
 from flask_mail import Mail, Message
 import requests
 import json
+import re
+from datetime import datetime
 
 # ================= Configuration =================
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -32,6 +34,7 @@ SERVICE_ACCOUNT_KEY_PATH = 'service-account-key.json'
 GBP_ACCOUNT_ID = os.getenv('2018567491275164845')
 
 
+
 # Separate file for Google Calendar OAuth credentials
 CALENDAR_CREDENTIALS_FILE = 'calendar_credentials.json'
 GOOGLE_CALENDAR_SCOPES = ['https://www.googleapis.com/auth/calendar']
@@ -41,9 +44,26 @@ SERVICE_ACCOUNT_KEY_PATH = 'service-account-key.json'
 GBP_ACCOUNT_ID = os.getenv('GBP_ACCOUNT_ID')
 
 
+# --- Meta Ads Configuration ---
+META_APP_ID = os.getenv('META_APP_ID', '1833802207405713')
+META_APP_SECRET = os.getenv('META_APP_SECRET', 'fb879992f99b69042b9fc7f82baf3b84')
+META_REDIRECT_URI = os.getenv('META_REDIRECT_URI', 'http://lvh.me:5000/auth/meta-ads/callback')
+META_SCOPES = ['ads_read']  # Adjust scopes as needed
+
+
 app = Flask(__name__)
 CORS(app)
 app.config['SECRET_KEY'] = 'b9c8d5a73944b7f924b5296acdf4cddc35e3475f0a1a32a0c451aee71d6c49b2'
+
+# ================= Play.AI API Configuration =================
+BASE_API_URL = "https://api.play.ai/api/v1/agents/Tracy-cJ0IP0ZF1JF7Uv1h0Gliv"
+CONVERSATIONS_ENDPOINT = f"{BASE_API_URL}/conversations"
+QUERYSTRING = {"pageSize": "50"}
+HEADERS = {
+    "AUTHORIZATION": "ak-ddc5a555dc44485984b0db1bc7c47075",
+    "X-USER-ID": "1KjL4Y0CseWDJubvoHYlh2ECGfn1",
+    "accept": "application/json"
+}
 
 # Flask-Mail configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -87,7 +107,6 @@ def generate_jwt_token(user_id):
     token = jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
     return token
 
-# Original token_required for endpoints requiring individual authentication
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -116,8 +135,6 @@ def admin_required(f):
         return f(current_user, *args, **kwargs)
     return decorated_admin
 
-# New decorator: token_or_admin_required allows access if either a valid token is present
-# OR if an admin is logged in (stored under session['adminUser'])
 def token_or_admin_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -193,8 +210,11 @@ def reset_password_otp_page():
 def business_profile_page(current_user):
     return render_template('business_profile.html', user=current_user)
 
-# Updated settings route:
-# Now, if an admin logs in, the settings page will query and send the list of normal users (those created by that admin)
+@app.route('/playai')
+@token_or_admin_required
+def playai_page(current_user):
+    return render_template('Playai_page.html', user=current_user)
+
 @app.route('/settings')
 @token_required
 @admin_required
@@ -203,9 +223,6 @@ def settings_page(current_user):
     for user in created_users:
         user['_id'] = str(user['_id'])
     return render_template('settings.html', created_users=created_users)
-
-
-
 
 @app.route('/widget/<admin_id>')
 def chatbot_widget(admin_id):
@@ -230,7 +247,7 @@ def register():
         'is_verified': False,
         'otp': otp,
         'otp_expiry': otp_expiry,
-        'is_admin': False  # Set to True manually for admin accounts
+        'is_admin': False
     }
     try:
         result = users_collection.insert_one(user)
@@ -267,7 +284,6 @@ def login():
             return jsonify({'requiresOtp': True, 'message': 'OTP verification required. Please verify OTP sent to your email.'}), 200
         token = generate_jwt_token(user['_id'])
         session['jwtToken'] = token
-        # If the user is an admin, store their info in session for later use
         if user.get('is_admin'):
             session['adminUser'] = {
                 'id': str(user['_id']),
@@ -326,6 +342,49 @@ def auth_callback():
         'scopes': credentials.scopes
     }
     return redirect(url_for('dashboard_page'))
+
+# ---------------- Meta Ads OAuth Endpoints ----------------
+@app.route('/auth/meta-ads')
+def auth_meta_ads():
+    # Construct the Meta (Facebook) OAuth URL
+    meta_auth_url = (
+        f"https://www.facebook.com/v12.0/dialog/oauth?"
+        f"client_id={META_APP_ID}&redirect_uri={META_REDIRECT_URI}&"
+        f"scope={','.join(META_SCOPES)}&response_type=code"
+    )
+    return redirect(meta_auth_url)
+
+@app.route('/auth/meta-ads/callback')
+def meta_ads_callback():
+    code = request.args.get('code')
+    if not code:
+        return "Authorization code not provided", 400
+    token_url = (
+        f"https://graph.facebook.com/v12.0/oauth/access_token?"
+        f"client_id={META_APP_ID}&redirect_uri={META_REDIRECT_URI}&"
+        f"client_secret={META_APP_SECRET}&code={code}"
+    )
+    token_response = requests.get(token_url).json()
+    access_token = token_response.get('access_token')
+    if not access_token:
+        return jsonify({'error': 'Failed to obtain Meta access token.'}), 400
+    session['meta_ads_token'] = access_token
+    return redirect(url_for('meta_ads_page'))
+
+@app.route('/meta-ads')
+@token_required
+def meta_ads_page(current_user):
+    token = session.get('meta_ads_token')
+    if not token:
+        # Redirect to Meta OAuth if token is missing
+        return redirect(url_for('auth_meta_ads'))
+    try:
+        # Example: Fetch list of ad accounts for the authenticated user
+        response = requests.get(f"https://graph.facebook.com/v12.0/me/adaccounts?access_token={token}")
+        ads_data = response.json()
+    except Exception as e:
+        return jsonify({'error': f"Error fetching Meta Ads data: {str(e)}"}), 500
+    return render_template('meta_ads.html', ads_data=ads_data)
 
 # ---------------- Analytics Endpoint with Filters ----------------
 @app.route('/analytics', methods=['GET'])
@@ -662,26 +721,23 @@ def invite_user(current_user):
     if users_collection.find_one({'email': email}):
         return jsonify({'error': 'User already exists with this email.'}), 400
     hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
-    # Auto-verify the user upon invite
     new_user = {
         'name': '',
         'email': email,
         'password': hashed_password,
         'created_at': datetime.now(timezone.utc),
-        'is_verified': True,  # Auto-verify without OTP
+        'is_verified': True,
         'is_admin': False,
         'created_by': current_user['_id']
     }
     try:
         result = users_collection.insert_one(new_user)
-        # Optionally, you can send an email notifying the invited user of their account details
         msg = Message('Invitation to join Social Dashboard', recipients=[email])
         msg.body = f"You have been invited to join the Social Dashboard. Your account has been created and verified. Please log in using your credentials."
         mail.send(msg)
         return jsonify({'message': 'User invited and auto-verified successfully. An email was sent to the user.'}), 200
     except Exception as e:
         return jsonify({'error': f'Error inviting user: {str(e)}'}), 500
-
 
 @app.route('/auth/confirm-invite', methods=['GET'])
 def confirm_invite():
@@ -691,12 +747,10 @@ def confirm_invite():
     user = users_collection.find_one({'invite_token': token})
     if not user:
         return "Invalid token or user not found.", 400
-    # Mark the user as verified and remove the invite token
     users_collection.update_one(
         {'_id': user['_id']},
         {'$set': {'is_verified': True}, '$unset': {'invite_token': ""}}
     )
-    # Optionally, you can render a template here to show a nice confirmation page
     return render_template('invite_confirmed.html')
 
 @app.route('/api/users', methods=['GET'])
@@ -704,7 +758,6 @@ def confirm_invite():
 @admin_required
 def list_users(current_user):
     try:
-        # Only list users that were created by the admin
         users = list(users_collection.find({'created_by': current_user['id'] if 'id' in current_user else current_user['_id']}))
         for user in users:
             user['_id'] = str(user['_id'])
@@ -980,6 +1033,21 @@ def get_user_profile(current_user):
         return jsonify(user_profile), 200
     except Exception as e:
         return jsonify({'error': f'Error retrieving user profile: {str(e)}'}), 500
+    
+@app.route('/playai/conversations', methods=['GET'])
+@token_or_admin_required
+def get_playai_conversations(current_user):
+    try:
+        response = requests.get(CONVERSATIONS_ENDPOINT, headers=HEADERS, params=QUERYSTRING)
+        print("Play.AI API status:", response.status_code)
+        print("Play.AI API response:", response.text)
+        if response.status_code != 200:
+            return jsonify({'error': 'Failed to fetch data from Play.AI API', 'details': response.text}), 500
+        conversations = response.json()
+        return jsonify(conversations)
+    except Exception as e:
+        print("Error fetching Play.AI conversations:", str(e))
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
