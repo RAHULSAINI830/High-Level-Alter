@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Meta Ads - Social Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Meta Ads Dashboard</h2>
+  {% if ads_data %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Ad Account ID</th>
+          <th>Name</th>
+          <th>Status</th>
+          <!-- Add more columns as needed -->
+        </tr>
+      </thead>
+      <tbody>
+        {% for account in ads_data.data %}
+        <tr>
+          <td>{{ account.id }}</td>
+          <td>{{ account.name }}</td>
+          <td>{{ account.account_status }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No Meta Ads data available.</p>
+  {% endif %}
+</div>
+{% endblock %}
