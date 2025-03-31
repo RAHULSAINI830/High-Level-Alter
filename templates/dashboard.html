@@ -34,7 +34,7 @@
       width: 350px;
       background-color: #0b1a02;
       color: #fff;
-=======
+
     /* -------------------------------------
        SIDEBAR: Dark Green + White Icons/Text
        ------------------------------------- */
@@ -144,7 +144,7 @@
       padding: 10px;
       border-radius: 5px;
       transition: background-color 0.2s, font-weight 0.2s;
-=======
+ 
       /* Makes the sidebar as tall as the viewport */
       position: sticky;
       /* Enables sticky positioning */
@@ -300,7 +300,7 @@
       color: #ee5566;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 
-=======
+ 
     }
 
     #headerSection .home-heading img {
@@ -433,7 +433,7 @@
     }
 
     /* Pagination and Action Buttons */
-=======
+ 
     /* Charts & Tables */
     .table-card {
       background-color: #f0f7fd;
@@ -498,7 +498,7 @@
 
     .action-buttons {
       margin-top: 15px;
-=======
+ 
     .pagination-btn:hover:not(:disabled) {
       background-color: #555;
     }
@@ -534,7 +534,7 @@
     }
 
     /* Canvas for charts */
-=======
+ 
     .card.chart-card,
     .card.map-card {
       width: 32%;
@@ -596,7 +596,7 @@
       color: #7f7f7f;
     }
 
-=======
+ 
     .filter-icons {
       display: flex;
       justify-content: flex-end;
@@ -695,7 +695,7 @@
       font-size: 0.9rem !important;
     }
 
-=======
+ 
     /* Force FullCalendar day numbers to be black */
     .fc .fc-daygrid-day-number {
       color: #000 !important;
@@ -904,7 +904,7 @@
       white-space: nowrap;
       text-overflow: ellipsis;
       transition: transform 0.5s, box-shadow 0.5s, max-width 0.5s;
-=======
+ 
       margin-bottom: 5px;
       padding: 0 5px;
     }
@@ -933,7 +933,7 @@
 
 
     .task-title {
-=======
+ 
     .mini-header .mini-title {
 
       font-weight: bold;
@@ -976,7 +976,7 @@
       font-size: 1rem;
     }
 
-=======
+ 
     /* Classic Event List Style */
 
     #eventList .list-group {
@@ -1125,7 +1125,7 @@
     }
 
     #dateFilterModal .custom-date-section .date-input-group {
-=======
+ 
     /* Custom Calendar Header in Calendar Tab */
     #calendarHeader {
 
@@ -1173,7 +1173,7 @@
       border-radius: 13px;
       padding: 0.75rem 3rem;
       font-size: 1.2rem;
-=======
+ 
     #calendarHeader #calendarTitle {
       font-size: 1.5rem;
       font-weight: bold;
@@ -1487,7 +1487,7 @@
       <div class="sidebar-divider"></div>
       <div class="logout-section">
         <a href="javascript:void(0)" onclick="logout()" id="nav-logout"><i class="fas fa-gear"></i> Logout</a>
-=======
+ 
 
       <!-- Navigation Menu -->
       <div class="nav-menu">
@@ -1776,7 +1776,7 @@
 
   <!-- Viewing Task Modal -->
   <div class="modal fade" id="viewTaskModal" tabindex="-1" aria-labelledby="viewTaskModalLabel" aria-hidden="true">
-=======
+ 
   <!-- Event Detail Modal -->
   <div class="modal fade" id="eventDetailModal" tabindex="-1" aria-labelledby="eventDetailModalLabel"
     aria-hidden="true">
@@ -1846,7 +1846,7 @@
       document.getElementById('avatar').src = `https://api.dicebear.com/6.x/identicon/svg?seed=${randomSeed}`;
     });
 
-=======
+ 
     // Filter Functions
     function addFilterIcons() {
       const container = document.getElementById('additionalSection');
@@ -1937,7 +1937,7 @@
       }
       const today = new Date();
       let startDate, endDate;
-=======
+ 
       // Hide modals if open
       bootstrap.Modal.getInstance(document.getElementById('dateFilterModal'))?.hide();
       bootstrap.Modal.getInstance(document.getElementById('otherFilterModal'))?.hide();
@@ -1963,7 +1963,7 @@
 
       document.getElementById('customStartDate').value = startDate;
       document.getElementById('customEndDate').value = endDate;
-=======
+ 
       if (document.getElementById('filterStartDate')) document.getElementById('filterStartDate').value = startDate;
       if (document.getElementById('filterEndDate')) document.getElementById('filterEndDate').value = endDate;
       if (document.getElementById('customStartDate')) document.getElementById('customStartDate').value = startDate;
@@ -2001,7 +2001,7 @@
               </div>
             </div>
           `;
-=======
+ 
           // Retrieve extended properties from the event
           const ext = arg.event.extendedProps || {};
 
@@ -2051,7 +2051,7 @@
                   icon: event.extendedProps?.icon || 'fa-building',
                   subtitle: event.extendedProps?.subtitle || '',
                   taskIndex: event.extendedProps?.taskIndex || 1
-=======
+ 
                   // Use properties provided by your backend, or default values:
                   icon: event.extendedProps?.icon || 'fa-building',
                   subtitle: event.extendedProps?.subtitle || '',
@@ -2123,7 +2123,7 @@
       modal.show();
     }
 
-=======
+ 
       });
       calendar.render();
       window.myCalendar = calendar;
@@ -2287,7 +2287,7 @@
       showLoader();
       try {
         const response = await fetch(url, {
-=======
+ 
     async function loadEventList() {
   const token = localStorage.getItem('jwtToken');
   try {
@@ -2804,7 +2804,7 @@
     }
 
     // Navigation Events
-=======
+ 
           const user = await response.json();
           // Update both header and sidebar with the user's name
           document.getElementById('user-name').innerText = user.name;
@@ -2845,7 +2845,7 @@
       setActiveSidebarLink('nav-integration');
       switchSection('integrations');
     });
-=======
+ 
 
 
     document.getElementById('nav-integration').addEventListener('click', function (e) {
@@ -2874,7 +2874,7 @@
       switchSection('businessProfile');
     });
     
-=======
+ 
 
     // Optional: For Settings, if you want to handle it:
     document.getElementById('nav-settings').addEventListener('click', function (e) {
@@ -2889,7 +2889,7 @@
       document.getElementById(linkId).classList.add('active');
     }
 
-=======
+ 
 
     function connectIntegration(integration) {
       alert("Connecting to " + integration + " is under construction.");
@@ -2904,7 +2904,7 @@
       document.getElementById('charts-section').style.display = 'none';
 
       document.getElementById('analyticsTableSection').style.display = 'none';
-=======
+ 
 
 
       if (sectionId === 'dashboard') {
@@ -2921,7 +2921,7 @@
                 <h5 style="font-weight: bold; color: #000;">Google Analytics</h5>
                 <p style="font-size: 0.9rem; color: #555;">View and analyse your website traffic.</p>
                 <button class="btn btn-primary" id="gaConnectBtn" onclick="window.location.href='/auth/google'">Connect</button>
-=======
+ 
             <div class="row">
               <div class="col-md-4 mb-4">
                 <div class="card">
@@ -2960,7 +2960,7 @@
         document.getElementById('analyticsTableSection').innerHTML = `
           <div class="card table-card mb-4">
             <div class="d-flex justify-content-between align-items-center">
-=======
+ 
           `;
       } else if (sectionId === 'analytics') {
         addFilterIcons();
@@ -3253,7 +3253,7 @@
       }
     });
 
-=======
+ 
           new bootstrap.Modal(document.getElementById('addEventModal')).show();
         });
         loadEventList();
