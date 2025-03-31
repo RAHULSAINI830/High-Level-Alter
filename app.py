@@ -24,6 +24,14 @@ CLIENT_SECRET_FILE = 'credentials.json'
 SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
 GA4_PROPERTY_ID = '376596938'
 
+
+CALENDAR_CREDENTIALS_FILE = 'calendar_credentials.json'
+GOOGLE_CALENDAR_SCOPES = ['https://www.googleapis.com/auth/calendar']
+
+SERVICE_ACCOUNT_KEY_PATH = 'service-account-key.json'
+GBP_ACCOUNT_ID = os.getenv('2018567491275164845')
+
+
 # Separate file for Google Calendar OAuth credentials
 CALENDAR_CREDENTIALS_FILE = 'calendar_credentials.json'
 GOOGLE_CALENDAR_SCOPES = ['https://www.googleapis.com/auth/calendar']
@@ -32,7 +40,7 @@ GOOGLE_CALENDAR_SCOPES = ['https://www.googleapis.com/auth/calendar']
 SERVICE_ACCOUNT_KEY_PATH = 'service-account-key.json'
 GBP_ACCOUNT_ID = os.getenv('GBP_ACCOUNT_ID')
 
-# Initialize Flask app
+
 app = Flask(__name__)
 CORS(app)
 app.config['SECRET_KEY'] = 'b9c8d5a73944b7f924b5296acdf4cddc35e3475f0a1a32a0c451aee71d6c49b2'
@@ -58,15 +66,17 @@ try:
 except Exception as e:
     print(f"Error connecting to MongoDB: {e}")
 
-# ================= Google Business Profile Client (Optional) =================
+# ================= Google Business Profile Clients =================
 bp_service = None
+bp_performance_service = None
 if os.path.exists(SERVICE_ACCOUNT_KEY_PATH) and GBP_ACCOUNT_ID:
     bp_scopes = ['https://www.googleapis.com/auth/business.manage']
-    bp_credentials = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_KEY_PATH, scopes=bp_scopes)
     try:
+        bp_credentials = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_KEY_PATH, scopes=bp_scopes)
         bp_service = build('mybusinessbusinessinformation', 'v1', credentials=bp_credentials)
+        bp_performance_service = build('businessprofileperformance', 'v1', credentials=bp_credentials)
     except Exception as e:
-        print(f"Error creating Google Business Profile client: {e}")
+        print(f"Error creating Google Business Profile clients: {e}")
 
 # ================= Helper Functions =================
 def generate_jwt_token(user_id):
@@ -77,6 +87,7 @@ def generate_jwt_token(user_id):
     token = jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
     return token
 
+# Original token_required for endpoints requiring individual authentication
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -104,6 +115,49 @@ def admin_required(f):
             return jsonify({'error': 'Admin privileges required.'}), 403
         return f(current_user, *args, **kwargs)
     return decorated_admin
+
+# New decorator: token_or_admin_required allows access if either a valid token is present
+# OR if an admin is logged in (stored under session['adminUser'])
+def token_or_admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('Authorization') or session.get('jwtToken')
+        if token:
+            if token.startswith('Bearer '):
+                token = token[7:]
+            try:
+                data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+                current_user = users_collection.find_one({'_id': ObjectId(data['user_id'])})
+                if not current_user:
+                    return jsonify({'error': 'User not found'}), 404
+                return f(current_user, *args, **kwargs)
+            except jwt.ExpiredSignatureError:
+                return jsonify({'error': 'Token has expired'}), 401
+            except jwt.InvalidTokenError:
+                return jsonify({'error': 'Invalid token'}), 403
+        else:
+            admin_user = session.get('adminUser')
+            if admin_user:
+                return f(admin_user, *args, **kwargs)
+            return jsonify({'error': 'Authentication required'}), 403
+    return decorated
+
+# ---------------- Context Processor ----------------
+@app.context_processor
+def inject_current_user():
+    token = session.get('jwtToken')
+    if token:
+        if token.startswith('Bearer '):
+            token = token[7:]
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+            user = users_collection.find_one({'_id': ObjectId(data['user_id'])})
+            if user:
+                user['_id'] = str(user['_id'])
+                return {'current_user': user}
+        except Exception as e:
+            print("Error decoding token:", e)
+    return {'current_user': None}
 
 # ================= Page Routes =================
 @app.route('/')
@@ -134,13 +188,30 @@ def reset_password_request_page():
 def reset_password_otp_page():
     return render_template('reset_password_otp.html')
 
+@app.route('/business-profile')
+@token_required
+def business_profile_page(current_user):
+    return render_template('business_profile.html', user=current_user)
+
+# Updated settings route:
+# Now, if an admin logs in, the settings page will query and send the list of normal users (those created by that admin)
 @app.route('/settings')
 @token_required
 @admin_required
 def settings_page(current_user):
-    return render_template('settings.html')
+    created_users = list(users_collection.find({'created_by': current_user['_id']}))
+    for user in created_users:
+        user['_id'] = str(user['_id'])
+    return render_template('settings.html', created_users=created_users)
 
-# ================= Authentication Endpoints =================
+
+
+
+@app.route('/widget/<admin_id>')
+def chatbot_widget(admin_id):
+    return render_template('widget.html', admin_id=admin_id)
+
+# ---------------- Authentication Endpoints ----------------
 @app.route('/auth/register', methods=['POST'])
 def register():
     data = request.json
@@ -159,7 +230,7 @@ def register():
         'is_verified': False,
         'otp': otp,
         'otp_expiry': otp_expiry,
-        'is_admin': False
+        'is_admin': False  # Set to True manually for admin accounts
     }
     try:
         result = users_collection.insert_one(user)
@@ -196,6 +267,13 @@ def login():
             return jsonify({'requiresOtp': True, 'message': 'OTP verification required. Please verify OTP sent to your email.'}), 200
         token = generate_jwt_token(user['_id'])
         session['jwtToken'] = token
+        # If the user is an admin, store their info in session for later use
+        if user.get('is_admin'):
+            session['adminUser'] = {
+                'id': str(user['_id']),
+                'name': user['name'],
+                'email': user['email']
+            }
         return jsonify({'token': token, 'message': 'Login successful'}), 200
     except Exception as e:
         print(f"Error during login: {str(e)}")
@@ -206,7 +284,10 @@ def login():
 def auth_google():
     try:
         redirect_uri = url_for('auth_callback', _external=True)
+        print("Generated redirect URI:", redirect_uri)
+
         print("Generated redirect URI:", redirect_uri)  # Debug print
+
         flow = Flow.from_client_secrets_file(CLIENT_SECRET_FILE, scopes=SCOPES, redirect_uri=redirect_uri)
     except FileNotFoundError:
         return "OAuth credentials file not found. Please add credentials.json to your project.", 500
@@ -217,6 +298,13 @@ def auth_google():
 def auth_callback():
     redirect_uri = url_for('auth_callback', _external=True)
     print("Generated redirect URI in callback:", redirect_uri)
+
+    if 'error' in request.args:
+        error = request.args.get("error")
+        return f"Error returned in callback: {error}"
+    if 'code' not in request.args:
+        return "Missing code parameter in response. This likely means the OAuth flow did not complete successfully."
+
     
     # Check for errors in the query string.
     if 'error' in request.args:
@@ -225,7 +313,7 @@ def auth_callback():
     
     if 'code' not in request.args:
         return "Missing code parameter in response. This likely means the OAuth flow did not complete successfully."
-    
+
     flow = Flow.from_client_secrets_file(CLIENT_SECRET_FILE, scopes=SCOPES, redirect_uri=redirect_uri)
     flow.fetch_token(authorization_response=request.url)
     credentials = flow.credentials
@@ -241,7 +329,8 @@ def auth_callback():
 
 # ---------------- Analytics Endpoint with Filters ----------------
 @app.route('/analytics', methods=['GET'])
-def fetch_analytics_data():
+@token_or_admin_required
+def fetch_analytics_data(current_user):
     if 'credentials' not in session:
         return jsonify({'error': 'User not authenticated. Please connect to Google Analytics first.'}), 401
     credentials = Credentials(**session['credentials'])
@@ -330,7 +419,7 @@ def fetch_analytics_data():
         print(f"Error fetching Google Analytics data: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-# ---------------- Google Business Profile Endpoint ----------------
+
 @app.route('/google-business-profile', methods=['GET'])
 def google_business_profile():
     if bp_service is None or not GBP_ACCOUNT_ID:
@@ -343,6 +432,123 @@ def google_business_profile():
     except Exception as e:
         print("Error fetching Google Business Profile data:", e)
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/admin/chatbot', methods=['GET', 'POST'])
+@token_required
+@admin_required
+def manage_chatbot(current_user):
+    if request.method == 'GET':
+        chatbot = db.chatbots.find_one({"admin_id": str(current_user['_id'])})
+        if not chatbot:
+            default_qa = [
+                {"question": "What services do you offer?", "answer": "We offer a range of digital marketing services."},
+                {"question": "How can I contact you?", "answer": "You can reach us via our contact page."}
+            ]
+            chatbot = {
+                "admin_id": str(current_user['_id']),
+                "predefined_qa": default_qa,
+                "created_at": datetime.now(timezone.utc)
+            }
+            db.chatbots.insert_one(chatbot)
+        return render_template('chatbot.html', chatbot=chatbot, user=current_user)
+    elif request.method == 'POST':
+        data = request.json
+        updated_qa = data.get("predefined_qa")
+        if updated_qa is None:
+            return jsonify({"error": "No Q&A provided"}), 400
+        db.chatbots.update_one(
+            {"admin_id": str(current_user['_id'])},
+            {"$set": {"predefined_qa": updated_qa}}
+        )
+        return jsonify({"message": "Chatbot data updated successfully."}), 200
+
+@app.route('/chatbot/<admin_id>/message', methods=['POST'])
+def chatbot_message(admin_id):
+    data = request.json
+    user_message = data.get("message", "").strip().lower()
+    if not user_message:
+        return jsonify({"error": "Message required"}), 400
+    chatbot = db.chatbots.find_one({"admin_id": admin_id})
+    if not chatbot:
+        return jsonify({"error": "Chatbot not found"}), 404
+    response = "I'm sorry, I didn't understand that."
+    for qa in chatbot.get("predefined_qa", []):
+        if qa["question"].lower() in user_message or user_message in qa["question"].lower():
+            response = qa["answer"]
+            break
+    return jsonify({"response": response})
+
+@app.route('/business-profile/performance', methods=['GET'])
+def google_business_profile_performance():
+    if bp_performance_service is None or not GBP_ACCOUNT_ID:
+        return jsonify({'error': 'Business Profile Performance integration is not configured.'}), 400
+    try:
+        location_id = request.args.get('location_id')
+        if not location_id:
+            parent = f"accounts/{GBP_ACCOUNT_ID}"
+            locations_response = bp_service.accounts().locations().list(parent=parent).execute()
+            locations = locations_response.get('locations', [])
+            if not locations:
+                return jsonify({'error': 'No locations found for this account.'}), 404
+            location_id = locations[0]['name'].split('/')[-1]
+        six_months_ago = (datetime.now(timezone.utc) - timedelta(days=180)).strftime("%Y-%m-%d")
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        request_body = {
+            "dateRanges": [{"startDate": six_months_ago, "endDate": today}],
+            "metrics": [
+                {"name": "views"},
+                {"name": "clicks"},
+                {"name": "calls"}
+            ]
+        }
+        parent = f"accounts/{GBP_ACCOUNT_ID}/locations/{location_id}"
+        performance_response = bp_performance_service.accounts().locations().fetchReport(parent=parent, body=request_body).execute()
+        return jsonify(performance_response), 200
+    except Exception as e:
+        print("Error fetching Google Business Profile performance data:", e)
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/send-performance-report', methods=['POST'])
+@token_required
+def send_performance_report(current_user):
+    try:
+        location_id = request.json.get('location_id')
+        if not location_id:
+            parent = f"accounts/{GBP_ACCOUNT_ID}"
+            locations_response = bp_service.accounts().locations().list(parent=parent).execute()
+            locations = locations_response.get('locations', [])
+            if not locations:
+                return jsonify({'error': 'No locations found for this account.'}), 404
+            location_id = locations[0]['name'].split('/')[-1]
+        six_months_ago = (datetime.now(timezone.utc) - timedelta(days=180)).strftime("%Y-%m-%d")
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        performance_request_body = {
+            "dateRanges": [{"startDate": six_months_ago, "endDate": today}],
+            "metrics": [
+                {"name": "views"},
+                {"name": "clicks"},
+                {"name": "calls"}
+            ]
+        }
+        parent = f"accounts/{GBP_ACCOUNT_ID}/locations/{location_id}"
+        performance_response = bp_performance_service.accounts().locations().fetchReport(parent=parent, body=performance_request_body).execute()
+        reviews_response = bp_service.accounts().locations().reviews().list(
+            parent=f'accounts/{GBP_ACCOUNT_ID}/locations/{location_id}'
+        ).execute()
+        reviews = reviews_response.get('reviews', [])
+        email_body = f"Performance Report (Last 6 Months):\n{json.dumps(performance_response, indent=2)}\n\nReviews:\n{json.dumps(reviews, indent=2)}"
+        msg = Message(
+            subject="Your 6-Month Business Profile Report",
+            recipients=[current_user['email']],
+            body=email_body
+        )
+        mail.send(msg)
+        return jsonify({'message': 'Performance report email sent successfully.'}), 200
+    except Exception as e:
+        print("Error sending performance report:", e)
+        return jsonify({'error': str(e)}), 500
+
 
 # ---------------- OTP and Password Reset Endpoints ----------------
 @app.route('/auth/verify-otp', methods=['POST'])
@@ -456,26 +662,26 @@ def invite_user(current_user):
     if users_collection.find_one({'email': email}):
         return jsonify({'error': 'User already exists with this email.'}), 400
     hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
-    invite_token = secrets.token_urlsafe(32)
+    # Auto-verify the user upon invite
     new_user = {
         'name': '',
         'email': email,
         'password': hashed_password,
         'created_at': datetime.now(timezone.utc),
-        'is_verified': False,
-        'invite_token': invite_token,
+        'is_verified': True,  # Auto-verify without OTP
         'is_admin': False,
         'created_by': current_user['_id']
     }
     try:
         result = users_collection.insert_one(new_user)
-        confirm_link = request.host_url.rstrip('/') + url_for('confirm_invite') + '?token=' + invite_token
+        # Optionally, you can send an email notifying the invited user of their account details
         msg = Message('Invitation to join Social Dashboard', recipients=[email])
-        msg.body = f"You have been invited to join the Social Dashboard.\n\nPlease click the following link to confirm your account:\n{confirm_link}\n\nIf you did not expect this, please ignore this email."
+        msg.body = f"You have been invited to join the Social Dashboard. Your account has been created and verified. Please log in using your credentials."
         mail.send(msg)
-        return jsonify({'message': 'Invitation sent successfully.'}), 200
+        return jsonify({'message': 'User invited and auto-verified successfully. An email was sent to the user.'}), 200
     except Exception as e:
         return jsonify({'error': f'Error inviting user: {str(e)}'}), 500
+
 
 @app.route('/auth/confirm-invite', methods=['GET'])
 def confirm_invite():
@@ -485,18 +691,21 @@ def confirm_invite():
     user = users_collection.find_one({'invite_token': token})
     if not user:
         return "Invalid token or user not found.", 400
+    # Mark the user as verified and remove the invite token
     users_collection.update_one(
         {'_id': user['_id']},
         {'$set': {'is_verified': True}, '$unset': {'invite_token': ""}}
     )
-    return "Your account has been confirmed! You can now log in.", 200
+    # Optionally, you can render a template here to show a nice confirmation page
+    return render_template('invite_confirmed.html')
 
 @app.route('/api/users', methods=['GET'])
-@token_required
+@token_or_admin_required
 @admin_required
 def list_users(current_user):
     try:
-        users = list(users_collection.find({'created_by': current_user['_id']}))
+        # Only list users that were created by the admin
+        users = list(users_collection.find({'created_by': current_user['id'] if 'id' in current_user else current_user['_id']}))
         for user in users:
             user['_id'] = str(user['_id'])
             if 'created_at' in user:
@@ -513,7 +722,7 @@ def list_users(current_user):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/users/<user_id>', methods=['PUT'])
-@token_required
+@token_or_admin_required
 @admin_required
 def update_user(current_user, user_id):
     data = request.json
@@ -534,12 +743,12 @@ def update_user(current_user, user_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/users/<user_id>', methods=['DELETE'])
-@token_required
+@token_or_admin_required
 @admin_required
 def delete_user(current_user, user_id):
     try:
         users_collection.delete_one({'_id': ObjectId(user_id)})
-        return jsonify({'message': 'User deleted successfully.'}), 200
+        return jsonify({'message': 'User deleted successfully'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -547,10 +756,10 @@ def delete_user(current_user, user_id):
 events_collection = db['events']
 
 @app.route('/calendar/events', methods=['GET'])
-@token_required
+@token_or_admin_required
 def get_events(current_user):
     try:
-        events = list(events_collection.find({"user_id": str(current_user['_id'])}))
+        events = list(events_collection.find({"user_id": str(current_user['_id'] if '_id' in current_user else current_user['id'])}))
         for event in events:
             event['_id'] = str(event['_id'])
         return jsonify(events), 200
@@ -558,14 +767,14 @@ def get_events(current_user):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/calendar/events', methods=['POST'])
-@token_required
+@token_or_admin_required
 def add_event(current_user):
     data = request.json
     required_fields = ['title', 'start', 'end']
     if not all(field in data for field in required_fields):
         return jsonify({'error': 'Title, start date, and end date are required.'}), 400
     event = {
-        'user_id': str(current_user['_id']),
+        'user_id': str(current_user['_id'] if '_id' in current_user else current_user['id']),
         'title': data['title'],
         'start': data['start'],
         'end': data['end'],
@@ -580,7 +789,7 @@ def add_event(current_user):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/calendar/events/<event_id>', methods=['PUT'])
-@token_required
+@token_or_admin_required
 def update_event(current_user, event_id):
     data = request.json
     update_fields = {}
@@ -596,7 +805,7 @@ def update_event(current_user, event_id):
         return jsonify({'error': 'No valid fields to update.'}), 400
     try:
         events_collection.update_one(
-            {'_id': ObjectId(event_id), 'user_id': str(current_user['_id'])},
+            {'_id': ObjectId(event_id), 'user_id': str(current_user['_id'] if '_id' in current_user else current_user['id'])},
             {'$set': update_fields}
         )
         return jsonify({'message': 'Event updated successfully'}), 200
@@ -604,10 +813,10 @@ def update_event(current_user, event_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/calendar/events/<event_id>', methods=['DELETE'])
-@token_required
+@token_or_admin_required
 def delete_event(current_user, event_id):
     try:
-        events_collection.delete_one({'_id': ObjectId(event_id), 'user_id': str(current_user['_id'])})
+        events_collection.delete_one({'_id': ObjectId(event_id), 'user_id': str(current_user['_id'] if '_id' in current_user else current_user['id'])})
         return jsonify({'message': 'Event deleted successfully'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -623,6 +832,7 @@ def auth_google_calendar():
         )
     except FileNotFoundError:
         return "OAuth credentials file not found. Please add calendar_credentials.json to your project.", 500
+
 
     authorization_url, state = flow.authorization_url(prompt='consent', access_type='offline')
     session['google_calendar_state'] = state
@@ -650,7 +860,7 @@ def auth_google_calendar_callback():
     return redirect(url_for('dashboard_page'))
 
 @app.route('/google-calendar/events', methods=['GET'])
-@token_required
+@token_or_admin_required
 def get_google_calendar_events(current_user):
     if 'google_calendar_credentials' not in session:
         return jsonify({'error': 'Google Calendar not connected.'}), 401
@@ -672,7 +882,7 @@ def get_google_calendar_events(current_user):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/google-calendar/events', methods=['POST'])
-@token_required
+@token_or_admin_required
 def create_google_calendar_event(current_user):
     if 'google_calendar_credentials' not in session:
         return jsonify({'error': 'Google Calendar not connected.'}), 401
@@ -682,14 +892,12 @@ def create_google_calendar_event(current_user):
         return jsonify({'error': 'Summary, start, and end times are required.'}), 400
 
     def format_datetime(dt_str):
-        # If dt_str is in the format "YYYY-MM-DDTHH:mm", append seconds and "Z"
         if len(dt_str) == 16:
             return dt_str + ":00Z"
         return dt_str
 
     start_formatted = format_datetime(data['start'])
     end_formatted = format_datetime(data['end'])
-
     credentials = Credentials(**session['google_calendar_credentials'])
     try:
         service = build('calendar', 'v3', credentials=credentials)
@@ -712,7 +920,7 @@ def create_google_calendar_event(current_user):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/google-calendar/events/<event_id>', methods=['PUT'])
-@token_required
+@token_or_admin_required
 def update_google_calendar_event(current_user, event_id):
     if 'google_calendar_credentials' not in session:
         return jsonify({'error': 'Google Calendar not connected.'}), 401
@@ -735,7 +943,7 @@ def update_google_calendar_event(current_user, event_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/google-calendar/events/<event_id>', methods=['DELETE'])
-@token_required
+@token_or_admin_required
 def delete_google_calendar_event(current_user, event_id):
     if 'google_calendar_credentials' not in session:
         return jsonify({'error': 'Google Calendar not connected.'}), 401
@@ -749,7 +957,7 @@ def delete_google_calendar_event(current_user, event_id):
 
 # ---------------- Other Endpoints ----------------
 @app.route('/protected', methods=['GET'])
-@token_required
+@token_or_admin_required
 def protected_route(current_user):
     return jsonify({
         'message': f'Hello {current_user["name"]}, you have access to this protected route!',
@@ -761,7 +969,7 @@ def protected_route(current_user):
     }), 200
 
 @app.route('/api/user/profile', methods=['GET'])
-@token_required
+@token_or_admin_required
 def get_user_profile(current_user):
     try:
         user_profile = {
